@@ -32,6 +32,7 @@ export function Cadastro() {
     async function handleSubmit(event: FormEvent) {
         event.preventDefault();
         setErroGeral("");
+        const emailLimpo = email.trim();
 
         const novosErros: Erros = {};
 
@@ -41,9 +42,9 @@ export function Cadastro() {
             novosErros.nome = "O nome deve ter pelo menos 3 caracteres.";
         }
 
-        if (email === "") {
+        if (emailLimpo === "") {
             novosErros.email = "Informe o e-mail.";
-        } else if (!validarEmail(email)) {
+        } else if (!validarEmail(emailLimpo)) {
             novosErros.email = "E-mail inválido.";
         }
 
@@ -77,13 +78,13 @@ export function Cadastro() {
         setEnviando(true);
         try {
             await cadastrar({
-                nome,
-                email,
+                nome: nome.trim(),
+                email: emailLimpo,
                 cpf: somenteNumeros(cpf),
                 senha,
                 confirmacaoSenha: confirmarSenha,
             });
-            navigate("/admin/login");
+            navigate("/admin/login", { state: { cadastroOk: true } });
         } catch (erro) {
             if (erro instanceof ApiError) {
                 setErroGeral(erro.message);

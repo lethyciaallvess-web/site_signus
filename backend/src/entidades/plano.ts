@@ -1,3 +1,4 @@
+import { normalizarTextoOpcional } from "../utils/validacoes";
 import { Column, Entity } from "typeorm";
 import { EntidadeBase } from "./entidade-base";
 import { RequisicaoInvalidaErro } from "../erros/erros-http";
@@ -23,8 +24,16 @@ export class Plano extends EntidadeBase {
     this._nome = limpo;
   }
 
-  @Column({ type: "text", nullable: true })
-  descricao: string | null = null;
+  @Column({ name: "descricao", type: "text", nullable: true })
+  private _descricao: string | null = null;
+
+  get descricao(): string | null {
+    return this._descricao;
+  }
+
+  set descricao(valor: string | null) {
+    this._descricao = normalizarTextoOpcional(valor, "A descrição", 2000);
+  }
 
   @Column({
     name: "valor_base",
@@ -47,6 +56,31 @@ export class Plano extends EntidadeBase {
     this._valorBase = valor;
   }
 
-  @Column({ type: "boolean", default: true })
-  ativo: boolean = true;
+  @Column({ name: "ativo", type: "boolean", default: true })
+  private _ativo: boolean = true;
+
+  get ativo(): boolean {
+    return this._ativo;
+  }
+
+  ativar(): void {
+    this._ativo = true;
+  }
+
+  desativar(): void {
+    this._ativo = false;
+  }
+
+  constructor(dados?: {
+    nome: string;
+    descricao?: string | null;
+    valorBase?: number | null;
+  }) {
+    super();
+    if (dados !== undefined) {
+      this.nome = dados.nome;
+      this.descricao = dados.descricao ?? null;
+      this.valorBase = dados.valorBase ?? null;
+    }
+  }
 }

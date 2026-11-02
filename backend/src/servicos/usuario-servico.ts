@@ -1,6 +1,5 @@
 import type { DadosAtualizarUsuario } from "../dtos/atualizar-usuario-dto";
 import type { DadosCriarUsuario } from "../dtos/criar-usuario-dto";
-import { Cpf } from "../dominio/cpf";
 import { Senha } from "../dominio/senha";
 import { PerfilUsuario, Usuario } from "../entidades/usuario";
 import { ConflitoErro, RecursoNaoEncontradoErro } from "../erros/erros-http";
@@ -45,10 +44,10 @@ export class UsuarioServico {
       throw new ConflitoErro("Já existe um usuário com esse CPF.");
     }
 
-    const usuario = new Usuario(
+    const usuario = Usuario.criar(
       dados.nome,
       dados.email,
-      new Cpf(dados.cpf).numeros,
+      dados.cpf,
       await new Senha(dados.senha).gerarHash(),
     );
 
@@ -78,7 +77,7 @@ export class UsuarioServico {
     }
 
     usuario.nome = dados.nome;
-    usuario.cpf = new Cpf(dados.cpf).numeros;
+    usuario.cpf = dados.cpf;
     usuario.definirSenhaHash(await new Senha(dados.senha).gerarHash());
 
     try {

@@ -16,7 +16,6 @@ function App() {
     <UsuarioProvider>
       <BrowserRouter>
         <Routes>
-          {/* site dos clientes */}
           <Route element={<SiteLayout />}>
             <Route path="/" element={<Inicio />} />
             <Route path="/galeria" element={<Galeria />} />
@@ -24,7 +23,6 @@ function App() {
           </Route>
 
           <Route path="/cliente" element={<RotaProtegida><Home /></RotaProtegida>} />
-          {/* painel administrativo */}
           <Route path="/admin" element={<Navigate to="/admin/home" replace />} />
           <Route path="/admin/login" element={<Login />} />
           <Route path="/admin/cadastro" element={<Cadastro />} />

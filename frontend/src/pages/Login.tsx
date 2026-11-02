@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { validarEmail } from "../utils/validacoes";
@@ -12,6 +12,8 @@ import { useUsuario } from "../contexts/UsuarioContext";
 
 export function Login() {
     const navigate = useNavigate();
+    const location = useLocation();
+    const cadastroOk = (location.state as { cadastroOk?: boolean } | null)?.cadastroOk === true;
     const { atualizarUsuario } = useUsuario();
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
@@ -74,6 +76,11 @@ export function Login() {
                 <h1 className="auth-title">Entrar</h1>
 
                 <form onSubmit={handleSubmit} noValidate className="auth-form">
+                    {cadastroOk && (
+                        <p role="status" className="form-success">
+                            Cadastro realizado com sucesso! Faça login para continuar.
+                        </p>
+                    )}
                     <Input
                         type="email"
                         placeholder="E-mail"

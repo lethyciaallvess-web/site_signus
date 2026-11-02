@@ -1,3 +1,4 @@
+import { normalizarTextoOpcional } from "../utils/validacoes";
 import { Column, Entity, JoinColumn, ManyToOne } from "typeorm";
 import { EntidadeBase } from "./entidade-base";
 import { RequisicaoInvalidaErro } from "../erros/erros-http";
@@ -143,6 +144,37 @@ export class Evento extends EntidadeBase {
     this._valorNegociado = valor;
   }
 
-  @Column({ type: "text", nullable: true })
-  observacoes: string | null = null;
+  @Column({ name: "observacoes", type: "text", nullable: true })
+  private _observacoes: string | null = null;
+
+  get observacoes(): string | null {
+    return this._observacoes;
+  }
+
+  set observacoes(valor: string | null) {
+    this._observacoes = normalizarTextoOpcional(valor, "As observações", 2000);
+  }
+
+  constructor(dados?: {
+    cliente: Cliente;
+    criadoPor: Usuario;
+    nome: string;
+    inicio: Date;
+    fim: Date;
+    localEvento: string;
+    plano?: Plano | null;
+  }) {
+    super();
+    if (dados !== undefined) {
+      this.cliente = dados.cliente;
+      this.clienteId = dados.cliente.id;
+      this.criadoPor = dados.criadoPor;
+      this.criadoPorUsuarioId = dados.criadoPor.id;
+      this.plano = dados.plano ?? null;
+      this.planoId = dados.plano?.id ?? null;
+      this.nome = dados.nome;
+      this.definirPeriodo(dados.inicio, dados.fim);
+      this.localEvento = dados.localEvento;
+    }
+  }
 }

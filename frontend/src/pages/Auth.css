@@ -59,6 +59,14 @@
   font-size: 0.85rem;
 }
 
+.form-success {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background-color: rgba(46, 125, 50, 0.1);
+  color: #1b5e20;
+  font-size: 0.85rem;
+}
+
 .auth-footer {
   margin-top: 14px;
   color: var(--text-muted);

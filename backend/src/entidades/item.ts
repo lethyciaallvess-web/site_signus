@@ -1,3 +1,4 @@
+import { normalizarTextoOpcional } from "../utils/validacoes";
 import { Column, Entity } from "typeorm";
 import { EntidadeBase } from "./entidade-base";
 import { RequisicaoInvalidaErro } from "../erros/erros-http";
@@ -72,12 +73,55 @@ export class Item extends EntidadeBase {
     this._quantidadeTotal = valor;
   }
 
-  @Column({ type: "text", nullable: true })
-  descricao: string | null = null;
+  @Column({ name: "descricao", type: "text", nullable: true })
+  private _descricao: string | null = null;
 
-  @Column({ type: "boolean", default: true })
-  ativo: boolean = true;
+  get descricao(): string | null {
+    return this._descricao;
+  }
 
-  @Column({ type: "varchar", length: 255, nullable: true })
-  imagem: string | null = null;
+  set descricao(valor: string | null) {
+    this._descricao = normalizarTextoOpcional(valor, "A descrição", 2000);
+  }
+
+  @Column({ name: "ativo", type: "boolean", default: true })
+  private _ativo: boolean = true;
+
+  get ativo(): boolean {
+    return this._ativo;
+  }
+
+  ativar(): void {
+    this._ativo = true;
+  }
+
+  desativar(): void {
+    this._ativo = false;
+  }
+
+  @Column({ name: "imagem", type: "varchar", length: 255, nullable: true })
+  private _imagem: string | null = null;
+
+  get imagem(): string | null {
+    return this._imagem;
+  }
+
+  set imagem(valor: string | null) {
+    this._imagem = normalizarTextoOpcional(valor, "O caminho da imagem", 255);
+  }
+
+  constructor(dados?: {
+    codigo: string;
+    nome: string;
+    categoria: string;
+    quantidadeTotal?: number;
+  }) {
+    super();
+    if (dados !== undefined) {
+      this.codigo = dados.codigo;
+      this.nome = dados.nome;
+      this.categoria = dados.categoria;
+      this.quantidadeTotal = dados.quantidadeTotal ?? 0;
+    }
+  }
 }

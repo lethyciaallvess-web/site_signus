@@ -19,7 +19,6 @@ export function UsuarioProvider({ children }: UsuarioProviderProps) {
       setCarregando(true);
       try {
         const { data } = await api.get<Usuario>("/usuarios/me");
-        // Ignore stale responses after another login, logout, or a newer session check.
         if (!ativo || consulta !== ultimaConsulta || localStorage.getItem("token") !== token) return;
         setUsuario(data);
         localStorage.setItem("usuario", JSON.stringify(data));

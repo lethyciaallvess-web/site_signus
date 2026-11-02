@@ -1,21 +1,16 @@
-# Dependências
 node_modules/
 
-# Arquivos gerados
 dist/
 coverage/
 *.tsbuildinfo
 
-# Senhas e configurações locais
 .env
 .env.*
 !.env.example
 
-# Editores
 .vscode/
 .idea/
 
-# Logs e arquivos do sistema
 *.log
 .DS_Store
 Thumbs.db

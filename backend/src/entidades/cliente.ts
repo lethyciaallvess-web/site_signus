@@ -1,12 +1,11 @@
 import { Column, Entity } from "typeorm";
 import { EntidadeBase } from "./entidade-base";
 import { RequisicaoInvalidaErro } from "../erros/erros-http";
-import { emailValido } from "../utils/validacoes";
+import { emailValido, normalizarTextoOpcional } from "../utils/validacoes";
 import { Cpf } from "../dominio/cpf";
 
 export enum TipoPessoa {
   FISICA = "FISICA",
-  JURIDICA = "JURIDICA",
 }
 
 @Entity({ name: "clientes" })
@@ -90,8 +89,16 @@ export class Cliente extends EntidadeBase {
     this._telefone = limpo;
   }
 
-  @Column({ type: "text", nullable: true })
-  observacoes: string | null = null;
+  @Column({ name: "observacoes", type: "text", nullable: true })
+  private _observacoes: string | null = null;
+
+  get observacoes(): string | null {
+    return this._observacoes;
+  }
+
+  set observacoes(valor: string | null) {
+    this._observacoes = normalizarTextoOpcional(valor, "As observações", 2000);
+  }
 
   constructor(dados?: { nome: string; email: string; cpf: string }) {
     super();

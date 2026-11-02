@@ -1,8 +1,5 @@
 /*M!999999\- enable the sandbox mode */ 
--- MariaDB dump 10.19-11.7.2-MariaDB, for Win64 (AMD64)
---
 -- Host: 127.0.0.1    Database: signus
--- ------------------------------------------------------
 -- Server version	10.4.32-MariaDB
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
@@ -16,16 +13,13 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*M!100616 SET @OLD_NOTE_VERBOSITY=@@NOTE_VERBOSITY, NOTE_VERBOSITY=0 */;
 
---
--- Table structure for table `clientes`
---
 
 DROP TABLE IF EXISTS `clientes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `clientes` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `tipo_pessoa` enum('FISICA','JURIDICA') NOT NULL DEFAULT 'FISICA',
+  `tipo_pessoa` enum('FISICA') NOT NULL DEFAULT 'FISICA',
   `nome` varchar(180) NOT NULL,
   `documento` varchar(14) NOT NULL,
   `email` varchar(255) NOT NULL,
@@ -38,18 +32,12 @@ CREATE TABLE `clientes` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `clientes`
---
 
 LOCK TABLES `clientes` WRITE;
 /*!40000 ALTER TABLE `clientes` DISABLE KEYS */;
 /*!40000 ALTER TABLE `clientes` ENABLE KEYS */;
 UNLOCK TABLES;
 
---
--- Table structure for table `evento_itens`
---
 
 DROP TABLE IF EXISTS `evento_itens`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -71,18 +59,12 @@ CREATE TABLE `evento_itens` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `evento_itens`
---
 
 LOCK TABLES `evento_itens` WRITE;
 /*!40000 ALTER TABLE `evento_itens` DISABLE KEYS */;
 /*!40000 ALTER TABLE `evento_itens` ENABLE KEYS */;
 UNLOCK TABLES;
 
---
--- Table structure for table `eventos`
---
 
 DROP TABLE IF EXISTS `eventos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -114,18 +96,12 @@ CREATE TABLE `eventos` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `eventos`
---
 
 LOCK TABLES `eventos` WRITE;
 /*!40000 ALTER TABLE `eventos` DISABLE KEYS */;
 /*!40000 ALTER TABLE `eventos` ENABLE KEYS */;
 UNLOCK TABLES;
 
---
--- Table structure for table `itens`
---
 
 DROP TABLE IF EXISTS `itens`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -146,9 +122,6 @@ CREATE TABLE `itens` (
 ) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `itens`
---
 
 LOCK TABLES `itens` WRITE;
 /*!40000 ALTER TABLE `itens` DISABLE KEYS */;
@@ -170,9 +143,6 @@ INSERT INTO `itens` VALUES
 /*!40000 ALTER TABLE `itens` ENABLE KEYS */;
 UNLOCK TABLES;
 
---
--- Table structure for table `plano_itens`
---
 
 DROP TABLE IF EXISTS `plano_itens`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -193,9 +163,6 @@ CREATE TABLE `plano_itens` (
 ) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `plano_itens`
---
 
 LOCK TABLES `plano_itens` WRITE;
 /*!40000 ALTER TABLE `plano_itens` DISABLE KEYS */;
@@ -230,9 +197,6 @@ INSERT INTO `plano_itens` VALUES
 /*!40000 ALTER TABLE `plano_itens` ENABLE KEYS */;
 UNLOCK TABLES;
 
---
--- Table structure for table `planos`
---
 
 DROP TABLE IF EXISTS `planos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -250,9 +214,6 @@ CREATE TABLE `planos` (
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `planos`
---
 
 LOCK TABLES `planos` WRITE;
 /*!40000 ALTER TABLE `planos` DISABLE KEYS */;
@@ -264,9 +225,6 @@ INSERT INTO `planos` VALUES
 /*!40000 ALTER TABLE `planos` ENABLE KEYS */;
 UNLOCK TABLES;
 
---
--- Table structure for table `usuarios`
---
 
 DROP TABLE IF EXISTS `usuarios`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -289,13 +247,7 @@ CREATE TABLE `usuarios` (
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `usuarios`
---
 
---
--- Dumping routines for database 'signus'
---
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -306,4 +258,3 @@ CREATE TABLE `usuarios` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-10-21 20:11:20

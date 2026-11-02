@@ -26,7 +26,6 @@ export function validarCpf(cpf: string) {
     return false;
   }
 
-  // rejeita 111.111.111-11, 000.000.000-00 etc.
   if (/^(\d)\1{10}$/.test(numeros)) {
     return false;
   }

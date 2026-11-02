@@ -45,7 +45,6 @@ export async function autenticar(
     throw new NaoAutenticadoErro("Token inválido ou expirado.");
   }
 
-  // Read current permissions on every request, including sessions issued before a role change.
   const fonte = req.app.locals.fonteDeDados as DataSource;
   const usuario = await fonte.getRepository(Usuario).findOneBy({ id: conteudo.sub });
   if (!usuario) throw new NaoAutenticadoErro("Conta não encontrada. Entre novamente.");

@@ -57,21 +57,23 @@ export class Usuario extends EntidadeBase {
     this._perfil = PerfilUsuario.CLIENTE;
   }
 
-  constructor(nome?: string, email?: string, cpf?: string, senhaHash?: string) {
+  constructor() {
     super();
-
-    if ([nome, email, cpf, senhaHash].every((valor) => valor === undefined)) {
-      this._perfil = PerfilUsuario.CLIENTE;
-      return;
-    }
-    if (nome === undefined || email === undefined || cpf === undefined || senhaHash === undefined) {
-      throw new RequisicaoInvalidaErro("Informe nome, e-mail, CPF e hash da senha ao criar o usuário.");
-    }
-    this.nome = nome;
-    this.email = email;
-    this.cpf = cpf;
-    this.definirSenhaHash(senhaHash);
     this._perfil = PerfilUsuario.CLIENTE;
+  }
+
+  static criar(
+    nome: string,
+    email: string,
+    cpf: string,
+    senhaHash: string,
+  ): Usuario {
+    const usuario = new Usuario();
+    usuario.nome = nome;
+    usuario.email = email;
+    usuario.cpf = cpf;
+    usuario.definirSenhaHash(senhaHash);
+    return usuario;
   }
 
   get nome(): string {

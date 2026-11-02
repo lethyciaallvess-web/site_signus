@@ -11,7 +11,6 @@ export function criarRotasCliente(fonte: DataSource): Router {
     if (perfil !== PerfilUsuario.CLIENTE) throw new AcessoNegadoErro("Área exclusiva de clientes.");
     const conta = await fonte.getRepository(Usuario).findOneBy({ id });
     if (!conta?.clienteId) throw new AcessoNegadoErro("Seu cadastro ainda não está vinculado a um cliente.");
-    // Identity comes from the authenticated account; request parameters never choose the client.
     const eventos = await fonte.query(`
       SELECT e.id, e.nome, e.data_inicio AS dataInicio, e.data_fim AS dataFim,
              e.local_evento AS localEvento, e.status, e.valor_negociado AS valor,
