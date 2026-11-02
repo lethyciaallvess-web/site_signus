@@ -1,10 +1,13 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { validarEmail, validarCpf } from "../utils/validacoes";
+import { validarEmail, validarCpf, somenteNumeros, REGEX_SENHA } from "../utils/validacoes";
 import { Input } from "../components/Input";
 import { cadastrar } from "../services/autenticacao";
 import { ApiError } from "../services/api";
+import logo from "../assets/logo-escura.png";
+import "./Auth.css";
+import { Botao } from "../components/Botao";
 
 interface Erros {
     nome?: string;
@@ -14,7 +17,6 @@ interface Erros {
     confirmarSenha?: string;
 }
 
-const REGEX_SENHA = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).+$/;
 
 export function Cadastro() {
     const navigate = useNavigate();
@@ -77,11 +79,11 @@ export function Cadastro() {
             await cadastrar({
                 nome,
                 email,
-                cpf,
+                cpf: somenteNumeros(cpf),
                 senha,
                 confirmacaoSenha: confirmarSenha,
             });
-            navigate("/login");
+            navigate("/admin/login");
         } catch (erro) {
             if (erro instanceof ApiError) {
                 setErroGeral(erro.message);
@@ -94,59 +96,71 @@ export function Cadastro() {
     }
 
     return (
-        <div className="app">
-            <h1>Criar conta</h1>
+        <div className="auth-page">
+            <div className="auth-card">
+                <div className="auth-brand">
+                    <img src={logo} alt="Signus Som e Luz" className="auth-logo" />
+                </div>
 
-            <form onSubmit={handleSubmit} noValidate>
-                <Input
-                    type="text"
-                    placeholder="Nome completo"
-                    value={nome}
-                    onChange={(event) => setNome(event.target.value)}
-                    erro={erros.nome}
-                />
+                <h1 className="auth-title">Criar conta</h1>
 
-                <Input
-                    type="email"
-                    placeholder="Digite seu e-mail"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    erro={erros.email}
-                />
+                <form onSubmit={handleSubmit} noValidate className="auth-form">
+                    <Input
+                        type="text"
+                        placeholder="Nome completo"
+                        value={nome}
+                        onChange={(event) => setNome(event.target.value)}
+                        erro={erros.nome}
+                    />
 
-                <Input
-                    type="text"
-                    placeholder="CPF"
-                    value={cpf}
-                    onChange={(event) => setCpf(event.target.value)}
-                    erro={erros.cpf}
-                />
+                    <Input
+                        type="email"
+                        placeholder="E-mail"
+                        value={email}
+                        onChange={(event) => setEmail(event.target.value)}
+                        erro={erros.email}
+                    />
 
-                <Input
-                    type="password"
-                    placeholder="Senha"
-                    value={senha}
-                    onChange={(event) => setSenha(event.target.value)}
-                    erro={erros.senha}
-                />
+                    <Input
+                        type="text"
+                        placeholder="CPF"
+                        value={cpf}
+                        onChange={(event) => setCpf(event.target.value)}
+                        erro={erros.cpf}
+                    />
 
-                <Input
-                    type="password"
-                    placeholder="Confirmar senha"
-                    value={confirmarSenha}
-                    onChange={(event) => setConfirmarSenha(event.target.value)}
-                    erro={erros.confirmarSenha}
-                />
+                    <Input
+                        type="password"
+                        placeholder="Senha"
+                        value={senha}
+                        onChange={(event) => setSenha(event.target.value)}
+                        erro={erros.senha}
+                    />
 
-                {erroGeral && <p role="alert">{erroGeral}</p>}
+                    <Input
+                        type="password"
+                        placeholder="Confirmar senha"
+                        value={confirmarSenha}
+                        onChange={(event) => setConfirmarSenha(event.target.value)}
+                        erro={erros.confirmarSenha}
+                    />
 
-                <button type="submit" disabled={enviando}>
-                    {enviando ? "Cadastrando..." : "Cadastrar"}
-                </button>
-            </form>
-            <p>
-                Já tem conta? <Link to="/login">Entrar</Link>
-            </p>
+                    {erroGeral && (
+                        <p role="alert" className="form-alert">
+                            {erroGeral}
+                        </p>
+                    )}
+
+                    <Botao type="submit" disabled={enviando}>
+                        Cadastrar
+                    </Botao>
+                    
+                </form>
+
+                <p className="auth-footer">
+                    Já tem conta? <Link to="/admin/login">Entrar</Link>
+                </p>
+            </div>
         </div>
     );
 }

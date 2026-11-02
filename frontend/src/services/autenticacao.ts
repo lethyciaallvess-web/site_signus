@@ -1,4 +1,4 @@
-import { api } from "./api";
+import { api } from "../api/axios";
 
 export interface Usuario {
   id: number;
@@ -12,28 +12,26 @@ interface RespostaLogin {
   usuario: Usuario;
 }
 
-export function cadastrar(dados: {
+export async function cadastrar(dados: {
   nome: string;
   email: string;
   cpf: string;
   senha: string;
   confirmacaoSenha: string;
 }) {
-  return api<Usuario>("/usuarios", {
-    method: "POST",
-    body: JSON.stringify(dados),
-  });
+  const resposta = await api.post<Usuario>("/usuarios", dados);
+  return resposta.data;
 }
 
 export async function login(email: string, senha: string) {
-  const resposta = await api<RespostaLogin>("/autenticacao/login", {
-    method: "POST",
-    body: JSON.stringify({ email, senha }),
+  const resposta = await api.post<RespostaLogin>("/autenticacao/login", {
+    email,
+    senha,
   });
 
-  localStorage.setItem("token", resposta.accessToken);
-  localStorage.setItem("usuario", JSON.stringify(resposta.usuario));
-  return resposta.usuario;
+  localStorage.setItem("token", resposta.data.accessToken);
+  localStorage.setItem("usuario", JSON.stringify(resposta.data.usuario));
+  return resposta.data.usuario;
 }
 
 export function logout() {
@@ -52,4 +50,16 @@ export function obterUsuario(): Usuario | null {
   } catch {
     return null;
   }
+}
+
+export type DadosEdicao = {
+  nome: string;
+  cpf: string;
+  senha: string;
+  confirmacaoSenha: string;
+};
+
+export async function atualizarPerfil(dados: DadosEdicao): Promise<Usuario> {
+  const resposta = await api.put<Usuario>("/usuarios/me", dados);
+  return resposta.data;
 }

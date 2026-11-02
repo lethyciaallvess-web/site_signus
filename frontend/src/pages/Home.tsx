@@ -1,13 +1,14 @@
-import { useNavigate } from "react-router-dom";
-import { logout, obterUsuario } from "../services/autenticacao";
+import { Link, useNavigate } from "react-router-dom";
+import { useUsuario } from "../contexts/UsuarioContext";
+import { Botao } from "../components/Botao";
 
 export function Home() {
     const navigate = useNavigate();
-    const usuario = obterUsuario();
+    const { usuario, sair } = useUsuario();
 
     function handleSair() {
-        logout();
-        navigate("/login");
+        sair();
+        navigate("/admin/login");
     }
 
     return (
@@ -15,7 +16,10 @@ export function Home() {
             <h1>Área logada</h1>
             <p>Login realizado com sucesso.</p>
             <p>Olá, {usuario?.nome}</p>
-            <button onClick={handleSair}>Sair</button>
+            <p>
+                <Link to="/admin/perfil">Editar meus dados</Link>
+            </p>
+            <Botao onClick={handleSair}>Sair</Botao>
         </div>
     );
 }

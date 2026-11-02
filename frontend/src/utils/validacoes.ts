@@ -36,3 +36,5 @@ export function validarCpf(cpf: string) {
 
   return digito1 === Number(numeros[9]) && digito2 === Number(numeros[10]);
 }
+
+export const REGEX_SENHA = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).+$/;
