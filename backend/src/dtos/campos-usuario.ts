@@ -1,9 +1,6 @@
-import {
-  cpfValido,
-  emailValido,
-  senhaForte,
-  somenteNumeros,
-} from "../utils/validacoes";
+import { Cpf } from "../dominio/cpf";
+import { Senha } from "../dominio/senha";
+import { emailValido } from "../utils/validacoes";
 
 export function lerCorpo(corpo: unknown): Record<string, unknown> {
   return typeof corpo === "object" && corpo !== null
@@ -32,12 +29,12 @@ export function validarEmail(valor: unknown, erros: string[]): string {
 }
 
 export function validarCpf(valor: unknown, erros: string[]): string {
-  const cpf = typeof valor === "string" ? somenteNumeros(valor) : "";
+  const cpf = typeof valor === "string" ? Cpf.somenteNumeros(valor) : "";
   if (cpf.length === 0) {
     erros.push("O CPF é obrigatório.");
   } else if (cpf.length !== 11) {
     erros.push("O CPF deve possuir 11 números.");
-  } else if (!cpfValido(cpf)) {
+  } else if (!Cpf.ehValido(cpf)) {
     erros.push("Informe um CPF válido.");
   }
   return cpf;
@@ -51,14 +48,8 @@ export function validarSenha(
   const texto = typeof senha === "string" ? senha : "";
   if (texto.length === 0) {
     erros.push("A senha é obrigatória.");
-  } else if (texto.length < 8) {
-    erros.push("A senha deve ter pelo menos 8 caracteres.");
-  } else if (texto.length > 72) {
-    erros.push("A senha deve ter no máximo 72 caracteres.");
-  } else if (!senhaForte(texto)) {
-    erros.push(
-      "A senha deve possuir letra maiúscula, minúscula, número e caractere especial.",
-    );
+  } else {
+    erros.push(...Senha.validar(texto));
   }
 
   if (confirmacao !== senha) {

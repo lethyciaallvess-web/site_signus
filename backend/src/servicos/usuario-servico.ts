@@ -1,11 +1,11 @@
-import bcrypt from "bcrypt";
 import type { DadosAtualizarUsuario } from "../dtos/atualizar-usuario-dto";
 import type { DadosCriarUsuario } from "../dtos/criar-usuario-dto";
+import { Cpf } from "../dominio/cpf";
+import { Senha } from "../dominio/senha";
 import { PerfilUsuario, Usuario } from "../entidades/usuario";
 import { ConflitoErro, RecursoNaoEncontradoErro } from "../erros/erros-http";
 import type { RepositorioDeUsuarios } from "../repositorios/usuario-repositorio";
 
-const CUSTO_BCRYPT = 12;
 
 export interface UsuarioPublico {
   id: number;
@@ -36,7 +36,7 @@ function ehErroDeDuplicidade(erro: unknown): boolean {
 }
 
 export class UsuarioServico {
-  constructor(private readonly usuarios: RepositorioDeUsuarios) {}
+  constructor(private readonly usuarios: RepositorioDeUsuarios) { }
 
   async cadastrar(dados: DadosCriarUsuario): Promise<UsuarioPublico> {
     if (await this.usuarios.buscarPorEmail(dados.email)) {
@@ -49,8 +49,8 @@ export class UsuarioServico {
     const usuario = new Usuario();
     usuario.nome = dados.nome;
     usuario.email = dados.email;
-    usuario.cpf = dados.cpf;
-    usuario.senhaHash = await bcrypt.hash(dados.senha, CUSTO_BCRYPT);
+    usuario.cpf = new Cpf(dados.cpf).numeros;
+    usuario.senhaHash = await new Senha(dados.senha).gerarHash();
     usuario.perfil = PerfilUsuario.OPERADOR;
 
     try {
@@ -79,8 +79,8 @@ export class UsuarioServico {
     }
 
     usuario.nome = dados.nome;
-    usuario.cpf = dados.cpf;
-    usuario.senhaHash = await bcrypt.hash(dados.senha, CUSTO_BCRYPT);
+    usuario.cpf = new Cpf(dados.cpf).numeros;
+    usuario.senhaHash = await new Senha(dados.senha).gerarHash(); 
 
     try {
       return paraPublico(await this.usuarios.salvar(usuario));
