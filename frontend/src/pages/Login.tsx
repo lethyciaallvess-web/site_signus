@@ -54,7 +54,7 @@ export function Login() {
         try {
             const usuario = await login(email, senha);
             atualizarUsuario(usuario);
-            navigate("/admin/home");
+            navigate(usuario.perfil === "CLIENTE" ? "/cliente" : "/admin/home");
         } catch (erro) {
             setErroGeral(
                 erro instanceof ApiError ? erro.message : "Erro inesperado. Tente novamente."

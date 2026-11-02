@@ -23,6 +23,7 @@ function App() {
             <Route path="/orcamento" element={<Orcamento />} />
           </Route>
 
+          <Route path="/cliente" element={<RotaProtegida><Home /></RotaProtegida>} />
           {/* painel administrativo */}
           <Route path="/admin" element={<Navigate to="/admin/home" replace />} />
           <Route path="/admin/login" element={<Login />} />

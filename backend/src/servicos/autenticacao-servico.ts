@@ -1,4 +1,3 @@
-import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { ambiente } from "../config/ambiente";
 import type { DadosLogin } from "../dtos/login-dto";
@@ -18,13 +17,13 @@ export interface RespostaLogin {
 }
 
 export class AutenticacaoServico {
-  constructor(private readonly usuarios: RepositorioDeCredenciais) {}
+  constructor(private readonly usuarios: RepositorioDeCredenciais) { }
 
   async login(dados: DadosLogin): Promise<RespostaLogin> {
     const usuario = await this.usuarios.buscarPorEmailComSenha(dados.email);
 
     const senhaCorreta = usuario
-      ? await bcrypt.compare(dados.senha, usuario.senhaHash)
+      ? await usuario.senhaConfere(dados.senha)
       : false;
 
     if (!usuario || !senhaCorreta) {

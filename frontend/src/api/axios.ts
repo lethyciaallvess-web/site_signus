@@ -31,6 +31,7 @@ api.interceptors.response.use(
         if (
             status === 401 &&
             localStorage.getItem("token") &&
+            erro.config?.headers?.Authorization === `Bearer ${localStorage.getItem("token")}` &&
             erro.config?.url !== "/autenticacao/login"
         ) {
             localStorage.removeItem("token");

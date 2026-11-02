@@ -154,7 +154,7 @@ export function Perfil() {
                 </form>
 
                 <p className="auth-footer">
-                    <Link to="/admin/home">Voltar</Link>
+                    <Link to={usuario?.perfil === "CLIENTE" ? "/cliente" : "/admin/home"}>Voltar</Link>
                 </p>
             </div>
         </div>

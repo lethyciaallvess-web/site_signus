@@ -1,9 +1,11 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useUsuario } from "../contexts/UsuarioContext";
 import { Botao } from "../components/Botao";
+import { PainelCliente } from "../components/PainelCliente";
 
 export function Home() {
     const navigate = useNavigate();
+    const { pathname } = useLocation();
     const { usuario, sair } = useUsuario();
 
     function handleSair() {
@@ -11,15 +13,16 @@ export function Home() {
         navigate("/admin/login");
     }
 
+    if (usuario?.perfil === "CLIENTE" && pathname !== "/cliente") return <Navigate to="/cliente" replace />;
+    if (usuario?.perfil !== "CLIENTE" && pathname === "/cliente") return <Navigate to="/admin/home" replace />;
     return (
         <div className="app">
-            <h1>Área logada</h1>
-            <p>Login realizado com sucesso.</p>
+            <h1>{usuario?.perfil === "CLIENTE" ? "Minha área" : "Painel da equipe"}</h1>
             <p>Olá, {usuario?.nome}</p>
             <p>
                 <Link to="/admin/perfil">Editar meus dados</Link>
             </p>
             <Botao onClick={handleSair}>Sair</Botao>
-        </div>
+            {usuario?.perfil === "CLIENTE" && <PainelCliente />}        </div>
     );
 }

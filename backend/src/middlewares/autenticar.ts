@@ -1,5 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import type { DataSource } from "typeorm";
+import { Usuario } from "../entidades/usuario";
 import { ambiente } from "../config/ambiente";
 import { NaoAutenticadoErro } from "../erros/erros-http";
 import type {
@@ -19,11 +21,11 @@ function ehConteudoJwt(valor: unknown): valor is ConteudoJwt {
   );
 }
 
-export function autenticar(
+export async function autenticar(
   req: Request,
   _res: Response,
   next: NextFunction,
-): void {
+): Promise<void> {
   const cabecalho = req.headers.authorization;
 
   if (!cabecalho?.startsWith("Bearer ")) {
@@ -43,11 +45,11 @@ export function autenticar(
     throw new NaoAutenticadoErro("Token inválido ou expirado.");
   }
 
-  req.usuario = {
-    id: conteudo.sub,
-    email: conteudo.email,
-    perfil: conteudo.perfil,
-  };
+  // Read current permissions on every request, including sessions issued before a role change.
+  const fonte = req.app.locals.fonteDeDados as DataSource;
+  const usuario = await fonte.getRepository(Usuario).findOneBy({ id: conteudo.sub });
+  if (!usuario) throw new NaoAutenticadoErro("Conta não encontrada. Entre novamente.");
+  req.usuario = { id: usuario.id, email: usuario.email, perfil: usuario.perfil };
   next();
 }
 

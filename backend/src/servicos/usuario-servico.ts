@@ -6,7 +6,6 @@ import { PerfilUsuario, Usuario } from "../entidades/usuario";
 import { ConflitoErro, RecursoNaoEncontradoErro } from "../erros/erros-http";
 import type { RepositorioDeUsuarios } from "../repositorios/usuario-repositorio";
 
-
 export interface UsuarioPublico {
   id: number;
   nome: string;
@@ -36,7 +35,7 @@ function ehErroDeDuplicidade(erro: unknown): boolean {
 }
 
 export class UsuarioServico {
-  constructor(private readonly usuarios: RepositorioDeUsuarios) { }
+  constructor(private readonly usuarios: RepositorioDeUsuarios) {}
 
   async cadastrar(dados: DadosCriarUsuario): Promise<UsuarioPublico> {
     if (await this.usuarios.buscarPorEmail(dados.email)) {
@@ -46,15 +45,15 @@ export class UsuarioServico {
       throw new ConflitoErro("Já existe um usuário com esse CPF.");
     }
 
-    const usuario = new Usuario();
-    usuario.nome = dados.nome;
-    usuario.email = dados.email;
-    usuario.cpf = new Cpf(dados.cpf).numeros;
-    usuario.senhaHash = await new Senha(dados.senha).gerarHash();
-    usuario.perfil = PerfilUsuario.OPERADOR;
+    const usuario = new Usuario(
+      dados.nome,
+      dados.email,
+      new Cpf(dados.cpf).numeros,
+      await new Senha(dados.senha).gerarHash(),
+    );
 
     try {
-      return paraPublico(await this.usuarios.salvar(usuario));
+      return paraPublico(await this.usuarios.salvarNovoCliente(usuario));
     } catch (erro) {
       if (ehErroDeDuplicidade(erro)) {
         throw new ConflitoErro("Já existe um usuário com esse e-mail ou CPF.");
@@ -80,7 +79,7 @@ export class UsuarioServico {
 
     usuario.nome = dados.nome;
     usuario.cpf = new Cpf(dados.cpf).numeros;
-    usuario.senhaHash = await new Senha(dados.senha).gerarHash(); 
+    usuario.definirSenhaHash(await new Senha(dados.senha).gerarHash());
 
     try {
       return paraPublico(await this.usuarios.salvar(usuario));

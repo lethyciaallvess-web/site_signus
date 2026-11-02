@@ -6,11 +6,11 @@ import {
 
 export abstract class EntidadeBase {
   @PrimaryGeneratedColumn({ type: "bigint", unsigned: true })
-  id!: number;
+  readonly id!: number;
 
   @CreateDateColumn({ name: "criado_em", type: "timestamp" })
-  criadoEm!: Date;
+  readonly criadoEm!: Date;
 
   @UpdateDateColumn({ name: "atualizado_em", type: "timestamp" })
-  atualizadoEm!: Date;
+  readonly atualizadoEm!: Date;
 }

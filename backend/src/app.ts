@@ -8,6 +8,7 @@ import { UsuarioControlador } from "./controladores/usuario-controlador";
 import { Usuario } from "./entidades/usuario";
 import { rotaNaoEncontrada, tratarErros } from "./middlewares/tratar-erros";
 import { UsuarioRepositorio } from "./repositorios/usuario-repositorio";
+import { criarRotasCliente } from "./rotas/cliente-rotas";
 import { criarRotasAutenticacao } from "./rotas/autenticacao-rotas";
 import { criarRotasUsuario } from "./rotas/usuario-rotas";
 import { AutenticacaoServico } from "./servicos/autenticacao-servico";
@@ -15,6 +16,7 @@ import { UsuarioServico } from "./servicos/usuario-servico";
 
 export function criarApp(fonteDeDados: DataSource): Express {
   const app = express();
+  app.locals.fonteDeDados = fonteDeDados;
 
   app.use(cors());
   app.use(express.json());
@@ -31,9 +33,11 @@ export function criarApp(fonteDeDados: DataSource): Express {
     new UsuarioServico(usuarioRepositorio),
   );
 
+
   const api = Router();
   api.use("/autenticacao", criarRotasAutenticacao(autenticacaoControlador));
   api.use("/usuarios", criarRotasUsuario(usuarioControlador));
+  api.use("/cliente", criarRotasCliente(fonteDeDados));
   app.use("/api", api);
 
   app.use(rotaNaoEncontrada);
