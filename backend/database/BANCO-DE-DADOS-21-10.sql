@@ -290,15 +290,6 @@ CREATE TABLE `usuarios` (
 -- Dumping data for table `usuarios`
 --
 
-LOCK TABLES `usuarios` WRITE;
-/*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
-INSERT INTO `usuarios` VALUES
-(1,'Usuario Teste','teste@signus.com','52998224725','$2b$12$WkZJYPidbzzGR/gtQHmKg.mCMf5iDguJsv5IZebGfSxblcoLYeCDS','OPERADOR','2026-10-05 23:40:34','2026-10-05 23:40:34'),
-(2,'Usuario Teste Atualizado','teste2.signus@example.com','11144477735','$2b$12$BmO4MZqpyIjuHz7YhOlh8.OFGG8AfQc2LMFn0QSHkckqtI0pF4qDS','OPERADOR','2026-10-15 23:36:02','2026-10-16 01:24:44'),
-(3,'João Teste','joao@teste.com','12345678909','$2b$12$o2nXUhtZYlPfScwmJg2EjOouGRPmKN8BoJhvJdeYjDTbOIA7.0J6C','OPERADOR','2026-10-21 00:52:44','2026-10-21 00:52:44');
-/*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
-UNLOCK TABLES;
-
 --
 -- Dumping routines for database 'signus'
 --
