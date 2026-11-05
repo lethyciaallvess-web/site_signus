@@ -7,7 +7,7 @@ services:
     container_name: mysql_db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: 9612235edd1d25bbc3ab3cd332a4a20c94eb3336ed1f11122cd6fbef33c20341
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: signus
 #    ports:
 #      - "3306:3306"
@@ -29,9 +29,9 @@ services:
       DB_HOST: db       
       DB_PORT: 3306
       DB_USERNAME: root
-      DB_PASSWORD: 9612235edd1d25bbc3ab3cd332a4a20c94eb3336ed1f11122cd6fbef33c20341
+      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       DB_DATABASE: signus
-      JWT_SECRET: fcd709238d78d6927ee482dc071f7aea84efa188b9f851f3ae85b6f0c8e3c8a7
+      JWT_SECRET: ${JWT_SECRET}
     depends_on:
       - db
     networks:
