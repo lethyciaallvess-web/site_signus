@@ -34,7 +34,7 @@ function ehErroDeDuplicidade(erro: unknown): boolean {
 }
 
 export class UsuarioServico {
-  constructor(private readonly usuarios: RepositorioDeUsuarios) {}
+  constructor(private readonly usuarios: RepositorioDeUsuarios) { }
 
   async cadastrar(dados: DadosCriarUsuario): Promise<UsuarioPublico> {
     if (await this.usuarios.buscarPorEmail(dados.email)) {
@@ -71,14 +71,19 @@ export class UsuarioServico {
   ): Promise<UsuarioPublico> {
     const usuario = await this.buscarOuFalhar(id);
 
-    const outroComCpf = await this.usuarios.buscarPorCpf(dados.cpf);
-    if (outroComCpf && outroComCpf.id !== usuario.id) {
-      throw new ConflitoErro("Já existe outro usuário com esse CPF.");
+    if (dados.cpf !== undefined) {
+      const outroComCpf = await this.usuarios.buscarPorCpf(dados.cpf);
+      if (outroComCpf && outroComCpf.id !== usuario.id) {
+        throw new ConflitoErro("Já existe outro usuário com esse CPF.");
+      }
+      usuario.cpf = dados.cpf;
     }
 
-    usuario.nome = dados.nome;
-    usuario.cpf = dados.cpf;
-    usuario.definirSenhaHash(await new Senha(dados.senha).gerarHash());
+    if (dados.nome !== undefined) usuario.nome = dados.nome;
+
+    if (dados.senha !== undefined) {
+      usuario.definirSenhaHash(await new Senha(dados.senha).gerarHash());
+    }
 
     try {
       return paraPublico(await this.usuarios.salvar(usuario));
