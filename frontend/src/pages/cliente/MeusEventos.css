@@ -1,0 +1,97 @@
+.meus-eventos {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 48px 5%;
+}
+
+.meus-eventos h1 {
+    color: var(--navy);
+    letter-spacing: -0.02em;
+}
+
+.meus-eventos-intro {
+    margin: 8px 0 24px;
+    color: var(--text-muted);
+}
+
+.meus-eventos-lista {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+}
+
+.meus-evento {
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-top: 3px solid #4d8dff;
+    border-radius: 16px;
+    background: var(--surface);
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.meus-evento:hover {
+    transform: translateY(-3px);
+    border-color: rgba(100, 150, 255, 0.5);
+    border-top-color: #4d8dff;
+    box-shadow: 0 10px 34px rgba(31, 107, 255, 0.22);
+}
+
+.meus-evento-topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.meus-evento-topo h3 {
+    color: var(--navy);
+}
+
+.meus-status {
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.status-CONFIRMADO,
+.status-EM_PREPARACAO {
+    background: rgba(47, 123, 255, 0.18);
+    box-shadow: inset 0 0 0 1px rgba(100, 150, 255, 0.45);
+    color: #a9c8ff;
+}
+
+.status-CONCLUIDO {
+    background: rgba(76, 195, 138, 0.14);
+    box-shadow: inset 0 0 0 1px rgba(76, 195, 138, 0.4);
+    color: #8fe3b8;
+}
+
+.status-CANCELADO {
+    background: rgba(235, 87, 87, 0.12);
+    box-shadow: inset 0 0 0 1px rgba(235, 87, 87, 0.35);
+    color: var(--error);
+}
+
+.meus-evento-linha {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.meus-evento-linha dt {
+    color: var(--text-muted);
+}
+
+.meus-evento-linha dd {
+    text-align: right;
+    font-weight: 600;
+    color: #fff;
+}

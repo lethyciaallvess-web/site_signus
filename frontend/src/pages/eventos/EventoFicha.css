@@ -1,0 +1,51 @@
+.ficha {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.ficha-dados {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.ficha-dado {
+    display: flex;
+    flex-direction: column;
+}
+
+.ficha-dado-rotulo {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+@media print {
+    .sem-impressao,
+    .admin-menu,
+    .admin-hamburguer {
+        display: none !important;
+    }
+
+    .admin {
+        --surface: #ffffff;
+        --border: #cccccc;
+        --text: #000000;
+        --text-muted: #444444;
+        --tabela-cabecalho: #eeeeee;
+        --tabela-hover: transparent;
+        background: #ffffff !important;
+    }
+
+    .admin h1,
+    .admin h2,
+    .admin-conteudo h1,
+    .cartao-resumo-valor {
+        color: #000000;
+    }
+
+    .admin-conteudo {
+        margin: 0;
+        padding: 0;
+    }
+}

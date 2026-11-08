@@ -1,19 +1,18 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { validarEmail } from "../utils/validacoes";
 import { Input } from "../components/Input";
 import { login } from "../services/autenticacao";
 import { ApiError } from "../services/api";
-import logo from "../assets/logo-escura.png";
+import logo from "../assets/logo-clara.png";
 import "./Auth.css";
 import { Botao } from "../components/Botao";
 import { useUsuario } from "../contexts/UsuarioContext";
+import { rotaInicial } from "../utils/perfis";
 
 export function Login() {
     const navigate = useNavigate();
-    const location = useLocation();
-    const cadastroOk = (location.state as { cadastroOk?: boolean } | null)?.cadastroOk === true;
     const { atualizarUsuario } = useUsuario();
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
@@ -56,7 +55,7 @@ export function Login() {
         try {
             const usuario = await login(email, senha);
             atualizarUsuario(usuario);
-            navigate(usuario.perfil === "CLIENTE" ? "/cliente" : "/admin/home");
+            navigate(rotaInicial(usuario.perfil));
         } catch (erro) {
             setErroGeral(
                 erro instanceof ApiError ? erro.message : "Erro inesperado. Tente novamente."
@@ -69,18 +68,21 @@ export function Login() {
     return (
         <div className="auth-page">
             <div className="auth-card">
+                <Link to="/" className="auth-voltar">
+                    ← Voltar ao site
+                </Link>
+
                 <div className="auth-brand">
                     <img src={logo} alt="Signus Som e Luz" className="auth-logo" />
                 </div>
 
                 <h1 className="auth-title">Entrar</h1>
 
+                <p className="auth-aviso">
+                    O acesso é liberado para clientes que já pediram orçamento à Signus.
+                </p>
+
                 <form onSubmit={handleSubmit} noValidate className="auth-form">
-                    {cadastroOk && (
-                        <p role="status" className="form-success">
-                            Cadastro realizado com sucesso! Faça login para continuar.
-                        </p>
-                    )}
                     <Input
                         type="email"
                         placeholder="E-mail"
@@ -109,7 +111,10 @@ export function Login() {
                 </form>
 
                 <p className="auth-footer">
-                    Não tem conta? <Link to="/admin/cadastro">Cadastre-se</Link>
+                    Primeiro acesso? <Link to="/cadastro">Ative sua conta</Link>
+                </p>
+                <p className="auth-footer">
+                    Ainda não é cliente? <Link to="/orcamento">Peça seu orçamento</Link>
                 </p>
             </div>
         </div>

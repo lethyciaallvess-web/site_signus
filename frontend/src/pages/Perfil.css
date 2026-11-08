@@ -1,0 +1,187 @@
+.perfil-page {
+    justify-content: center;
+    padding: 24px 16px;
+}
+
+.perfil-card {
+    width: 100%;
+    max-width: 520px;
+    padding: 28px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: linear-gradient(160deg, rgba(22, 26, 38, 0.82), rgba(6, 8, 14, 0.9));
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 16px 50px rgba(0, 0, 0, 0.5), 0 0 60px rgba(31, 107, 255, 0.14);
+}
+
+.perfil-topo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+}
+
+.perfil-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 84px;
+    height: 84px;
+    margin-bottom: 6px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #2f7bff, #1a5ae6);
+    box-shadow: 0 8px 28px rgba(31, 107, 255, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    color: #fff;
+    font-size: 1.9rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.perfil-topo h1 {
+    color: #fff;
+    font-size: 1.4rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+.perfil-email {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    overflow-wrap: anywhere;
+}
+
+.perfil-selo {
+    margin-top: 6px;
+    padding: 3px 12px;
+    border-radius: 999px;
+    background: rgba(47, 123, 255, 0.18);
+    box-shadow: inset 0 0 0 1px rgba(100, 150, 255, 0.45);
+    color: #a9c8ff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.perfil-sucesso {
+    margin-top: 18px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: rgba(76, 195, 138, 0.12);
+    color: #8fe3b8;
+    font-size: 0.85rem;
+}
+
+.perfil-alerta {
+    margin-top: 18px;
+}
+
+.perfil-secao {
+    margin-top: 22px;
+}
+
+.perfil-secao-cabecalho {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 6px;
+}
+
+.perfil-secao-cabecalho h2 {
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.perfil-link {
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--campo-foco);
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.15s;
+}
+
+.perfil-link:hover {
+    color: #fff;
+}
+
+.perfil-linha {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.perfil-linha dt {
+    color: var(--text-muted);
+    font-size: 0.92rem;
+}
+
+.perfil-linha dd {
+    color: #fff;
+    font-weight: 600;
+    text-align: right;
+    overflow-wrap: anywhere;
+}
+
+.perfil-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 6px;
+}
+
+.perfil-acoes {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.perfil-acoes .btn {
+    padding: 10px 22px;
+    font-size: 0.92rem;
+}
+
+.perfil-cancelar {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    box-shadow: inset 0 0 0 1px var(--acao-borda);
+    color: var(--acao-texto);
+    font-family: inherit;
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+
+.perfil-cancelar:hover {
+    background: var(--acao-fundo-hover);
+}
+
+.perfil-rodape {
+    margin-top: 26px;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 600px) {
+    .perfil-card {
+        padding: 22px 18px;
+    }
+}

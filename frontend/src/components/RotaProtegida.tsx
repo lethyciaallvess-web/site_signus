@@ -1,10 +1,27 @@
 import { Navigate } from "react-router-dom";
 import type { ReactNode } from "react";
-import { estaLogado } from "../services/autenticacao";
-import { useUsuario } from "../contexts/UsuarioContext";
-export function RotaProtegida({ children }: { children: ReactNode }) {
-  const { usuario, carregando } = useUsuario();
-  if (carregando) return <p role="status">Carregando seu acesso...</p>;
-  if (!estaLogado() || !usuario) return <Navigate to="/admin/login" replace />;
-  return <>{children}</>;
+import { estaLogado, obterUsuario } from "../services/autenticacao";
+import { PERFIL_CLIENTE, rotaInicial } from "../utils/perfis";
+
+type RotaProtegidaProps = {
+    children: ReactNode;
+    area?: "cliente" | "equipe";
+};
+
+export function RotaProtegida({ children, area }: RotaProtegidaProps) {
+    if (!estaLogado()) {
+        return <Navigate to="/login" replace />;
+    }
+
+    const usuario = obterUsuario();
+
+    if (area && usuario) {
+        const ehCliente = usuario.perfil === PERFIL_CLIENTE;
+
+        if ((area === "cliente") !== ehCliente) {
+            return <Navigate to={rotaInicial(usuario.perfil)} replace />;
+        }
+    }
+
+    return <>{children}</>;
 }

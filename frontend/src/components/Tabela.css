@@ -1,22 +1,57 @@
 .tabela {
   width: 100%;
-  border-collapse: collapse;
+  border: 1px solid var(--border);
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 16px;
+  overflow: hidden;
   background: var(--surface);
 }
 
 .tabela th,
 .tabela td {
-  padding: 10px 12px;
+  padding: 14px 16px;
   text-align: left;
   border-bottom: 1px solid var(--border);
 }
 
 .tabela th {
+  background: var(--tabela-cabecalho, rgba(31, 95, 191, 0.06));
   color: var(--text-muted);
-  font-size: 0.85rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tabela td {
+  font-size: 0.92rem;
+}
+
+.tabela tbody tr {
+  transition: background-color 0.15s;
+}
+
+.tabela tbody tr:hover {
+  background: var(--tabela-hover, rgba(31, 95, 191, 0.05));
+}
+
+.tabela tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .tabela-vazia {
+  padding: 32px 16px;
+  border: 1px dashed var(--border);
+  border-radius: 16px;
   color: var(--text-muted);
-  padding: 16px 0;
+  text-align: center;
+}
+
+@media (max-width: 800px) {
+  .tabela {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
 }

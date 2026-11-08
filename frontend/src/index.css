@@ -9,6 +9,34 @@
   --text: #1b2333;
   --text-muted: #5b6578;
   --error: #c62828;
+  --campo-borda: #b8c0d0;
+}
+
+.admin,
+.auth-page {
+  --bg: #04060b;
+  --surface: linear-gradient(160deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.015));
+  --border: rgba(255, 255, 255, 0.1);
+  --text: #ffffff;
+  --text-muted: #c4cbd9;
+  --navy: #ffffff;
+  --blue: #ffffff;
+  --blue-dark: #dbe6ff;
+  --error: #f0a3a3;
+  --campo-borda: rgba(255, 255, 255, 0.28);
+  --campo-foco: #4d8dff;
+  --campo-opcao: #0b0e16;
+  --perigo-fundo: rgba(235, 87, 87, 0.1);
+  --perigo-fundo-hover: rgba(235, 87, 87, 0.18);
+  --perigo-borda: rgba(235, 87, 87, 0.35);
+  --perigo-texto: #f4b0b0;
+  --acao-borda: rgba(255, 255, 255, 0.22);
+  --acao-texto: #ffffff;
+  --acao-fundo-hover: rgba(255, 255, 255, 0.09);
+  --alerta-fundo: rgba(235, 87, 87, 0.1);
+  --alerta-texto: #f4b0b0;
+  --tabela-cabecalho: rgba(255, 255, 255, 0.045);
+  --tabela-hover: rgba(255, 255, 255, 0.04);
 }
 
 * {
@@ -51,14 +79,54 @@ a:hover {
 }
 
 .btn-primary {
-  background-color: var(--blue);
+  background: var(--btn-fundo, linear-gradient(180deg, #2f7bff, #1a5ae6));
+  box-shadow: var(--btn-brilho, 0 6px 20px rgba(31, 107, 255, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.22));
   color: #fff;
   font-weight: 700;
-  border-radius: 999px;
+  border-radius: 8px;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: var(--blue-dark);
+  background: var(--btn-fundo-hover, linear-gradient(180deg, #4a8cff, #2468f0));
+  box-shadow: var(--btn-brilho-hover, 0 8px 26px rgba(31, 107, 255, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.28));
+}
+
+.btn-danger {
+  background: var(--perigo-fundo, rgba(198, 40, 40, 0.08));
+  box-shadow: inset 0 0 0 1px var(--perigo-borda, rgba(198, 40, 40, 0.35));
+  color: var(--perigo-texto, #c62828);
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: var(--perigo-fundo-hover, rgba(198, 40, 40, 0.16));
+}
+
+.acoes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.acoes a {
+  padding: 6px 14px;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px var(--acao-borda, rgba(31, 95, 191, 0.35));
+  color: var(--acao-texto, var(--blue));
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.15s;
+}
+
+.acoes a:hover {
+  background: var(--acao-fundo-hover, rgba(31, 95, 191, 0.1));
+}
+
+.acoes .btn {
+  padding: 6px 14px;
+  font-size: 0.85rem;
 }
 .not-found {
   max-width: 480px;
@@ -70,4 +138,44 @@ a:hover {
 .not-found h1 {
   margin-bottom: 12px;
   color: var(--navy);
+}
+
+.pagina-cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 520px;
+  margin-top: 20px;
+  padding: 28px 28px 24px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.campo-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.campo-rotulo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
 }

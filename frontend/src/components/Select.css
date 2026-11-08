@@ -1,0 +1,25 @@
+.form-field select {
+  width: 100%;
+  padding: 8px 2px;
+  border: none;
+  border-bottom: 1px solid var(--campo-borda);
+  background: transparent;
+  font: inherit;
+  color: var(--text);
+  outline: none;
+}
+
+.form-field select:focus {
+  border-bottom-color: var(--campo-foco, var(--blue));
+  box-shadow: 0 1px 0 var(--campo-foco, var(--blue));
+}
+
+.form-field select option {
+  background: var(--campo-opcao, #fff);
+  color: var(--text);
+}
+
+.form-field select:disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+}

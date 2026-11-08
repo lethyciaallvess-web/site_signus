@@ -5,6 +5,7 @@ export const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL ?? "/api",
 });
 
+
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem("token");
 
@@ -29,7 +30,6 @@ api.interceptors.response.use(
         if (
             status === 401 &&
             localStorage.getItem("token") &&
-            erro.config?.headers?.Authorization === `Bearer ${localStorage.getItem("token")}` &&
             erro.config?.url !== "/autenticacao/login"
         ) {
             localStorage.removeItem("token");

@@ -3,7 +3,6 @@ import type { Usuario } from "../services/autenticacao";
 
 type UsuarioContextType = {
   usuario: Usuario | null;
-  carregando: boolean;
   atualizarUsuario: (usuario: Usuario | null) => void;
   sair: () => void;
 };

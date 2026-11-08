@@ -1,0 +1,112 @@
+.resumo-grade {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    margin: 24px 0;
+}
+
+.cartao-resumo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--surface);
+    color: inherit;
+    text-decoration: none;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.cartao-resumo:hover {
+    transform: translateY(-3px);
+    border-color: rgba(100, 150, 255, 0.5);
+    box-shadow: 0 10px 34px rgba(31, 107, 255, 0.22);
+}
+
+.cartao-resumo-valor {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.cartao-resumo-titulo {
+    color: var(--text-muted);
+}
+
+.painel-colunas {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 24px;
+}
+
+.painel-bloco {
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--surface);
+    overflow-x: auto;
+}
+
+.painel-bloco h2 {
+    margin-top: 0;
+    margin-bottom: 14px;
+    font-size: 1.1rem;
+}
+
+.painel-bloco .tabela {
+    border: none;
+    border-radius: 0;
+    background: transparent;
+}
+
+.barra-status {
+    display: grid;
+    grid-template-columns: 110px 1fr 30px;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.barra-status-rotulo {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.barra-status-trilho {
+    height: 10px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+}
+
+.barra-status-preenchimento {
+    height: 100%;
+    background: var(--text-muted);
+}
+
+.barra-ORCAMENTO { background: #f5b84d; }
+.barra-CONFIRMADO { background: #6fb0ff; }
+.barra-EM_PREPARACAO { background: #2f7bff; }
+.barra-CONCLUIDO { background: #4cc38a; }
+.barra-CANCELADO { background: #ef6b6b; }
+
+.barra-status-quantidade {
+    text-align: right;
+    font-weight: 600;
+}
+
+.erro {
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background-color: var(--alerta-fundo, rgba(198, 40, 40, 0.08));
+    color: var(--alerta-texto, #8e1b1b);
+    font-size: 0.85rem;
+}
+
+@media (max-width: 800px) {
+    .painel-colunas {
+        grid-template-columns: 1fr;
+    }
+}

@@ -36,7 +36,6 @@ services:
       - db
     networks:
       - rede-interna
-      - rede-externa
 
   # 3. Frontend React (Vite)
   frontend:
