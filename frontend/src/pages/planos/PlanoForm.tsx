@@ -9,7 +9,8 @@ import { atualizarPlano, buscarPlano, criarPlano } from "../../services/planos";
 import type { ItemPlano } from "../../services/planos";
 import { listarItens } from "../../services/itens";
 import { ApiError } from "../../services/api";
-import { mascararMoeda, moedaParaNumero } from "../../utils/mascaras";
+import { mascararMoeda, mascararTexto, moedaParaNumero } from "../../utils/mascaras";
+import { validarTexto } from "../../utils/validacoes";
 
 type FormPlano = {
     nome: string;
@@ -113,6 +114,8 @@ export function PlanoForm() {
             novosErros.nome = "Informe o nome.";
         } else if (nome.length < 3 || nome.length > 80) {
             novosErros.nome = "O nome deve ter entre 3 e 80 caracteres.";
+        } else if (!validarTexto(nome)) {
+            novosErros.nome = "Use apenas letras, números, espaço, ponto, vírgula e hífen.";
         }
 
         const idsUsados = linhas.map((linha) => linha.itemId);
@@ -173,8 +176,10 @@ export function PlanoForm() {
                 <Input
                     type="text"
                     placeholder="Nome"
+                    obrigatorio
+                    maxLength={80}
                     value={form.nome}
-                    onChange={(event) => setForm({ ...form, nome: event.target.value })}
+                    onChange={(event) => setForm({ ...form, nome: mascararTexto(event.target.value) })}
                     erro={erros.nome}
                 />
 

@@ -14,7 +14,8 @@ import { listarPlanos } from "../../services/planos";
 import type { Plano } from "../../services/planos";
 import { listarItens } from "../../services/itens";
 import { ApiError } from "../../services/api";
-import { mascararMoeda, moedaParaNumero } from "../../utils/mascaras";
+import { mascararMoeda, mascararTexto, moedaParaNumero } from "../../utils/mascaras";
+import { validarTexto } from "../../utils/validacoes";
 import { proximosStatus, rotulosStatus } from "../../utils/formatacoes";
 
 type FormEvento = {
@@ -150,6 +151,8 @@ export function EventoForm() {
             novosErros.nome = "Informe o nome.";
         } else if (nome.length < 3 || nome.length > 180) {
             novosErros.nome = "O nome deve ter entre 3 e 180 caracteres.";
+        } else if (!validarTexto(nome)) {
+            novosErros.nome = "Use apenas letras, números, espaço, ponto, vírgula e hífen.";
         }
 
         if (form.clienteId === "") {
@@ -170,6 +173,8 @@ export function EventoForm() {
             novosErros.localEvento = "Informe o local.";
         } else if (localEvento.length < 3 || localEvento.length > 255) {
             novosErros.localEvento = "O local deve ter entre 3 e 255 caracteres.";
+        } else if (!validarTexto(localEvento)) {
+            novosErros.localEvento = "Use apenas letras, números, espaço, ponto, vírgula e hífen.";
         }
 
         const idsUsados = linhas.map((linha) => linha.itemId);
@@ -240,13 +245,16 @@ export function EventoForm() {
                 <Input
                     type="text"
                     placeholder="Nome do evento"
+                    obrigatorio
+                    maxLength={180}
                     value={form.nome}
-                    onChange={(event) => setForm({ ...form, nome: event.target.value })}
+                    onChange={(event) => setForm({ ...form, nome: mascararTexto(event.target.value) })}
                     erro={erros.nome}
                 />
 
                 <Select
                     rotulo="Cliente"
+                    obrigatorio
                     value={form.clienteId}
                     onChange={(event) => setForm({ ...form, clienteId: event.target.value })}
                     textoVazio="Selecione o cliente"
@@ -273,6 +281,7 @@ export function EventoForm() {
                     <Input
                         type="datetime-local"
                         placeholder="Início"
+                        obrigatorio
                         value={form.dataInicio}
                         onChange={(event) => setForm({ ...form, dataInicio: event.target.value })}
                         erro={erros.dataInicio}
@@ -284,6 +293,7 @@ export function EventoForm() {
                     <Input
                         type="datetime-local"
                         placeholder="Fim"
+                        obrigatorio
                         value={form.dataFim}
                         onChange={(event) => setForm({ ...form, dataFim: event.target.value })}
                         erro={erros.dataFim}
@@ -293,8 +303,10 @@ export function EventoForm() {
                 <Input
                     type="text"
                     placeholder="Local do evento"
+                    obrigatorio
+                    maxLength={255}
                     value={form.localEvento}
-                    onChange={(event) => setForm({ ...form, localEvento: event.target.value })}
+                    onChange={(event) => setForm({ ...form, localEvento: mascararTexto(event.target.value) })}
                     erro={erros.localEvento}
                 />
 

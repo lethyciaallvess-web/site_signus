@@ -1,4 +1,0 @@
-.cliente-eventos { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 16px; text-align: left; }
-.cliente-eventos dl { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 8px; }
-.cliente-eventos dt { font-weight: 600; }
-.cliente-eventos dd { margin: 0; overflow-wrap: anywhere; }

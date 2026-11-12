@@ -40,9 +40,9 @@ export type DadosEvento = {
     itensExtras: { itemId: number; quantidade: number }[];
 };
 
-export async function listarEventos(pagina: number, limite = 10) {
+export async function listarEventos(pagina: number, limite = 10, busca = "") {
     const resposta = await api.get<Pagina<Evento>>("/eventos", {
-        params: { pagina, limite },
+        params: { pagina, limite, busca: busca || undefined },
     });
     return resposta.data;
 }

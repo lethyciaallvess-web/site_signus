@@ -86,6 +86,9 @@ export function Login() {
                     <Input
                         type="email"
                         placeholder="E-mail"
+                        obrigatorio
+                        maxLength={255}
+                        inputMode="email"
                         value={email}
                         onChange={(event) => setEmail(event.target.value)}
                         erro={erroEmail}
@@ -94,6 +97,8 @@ export function Login() {
                     <Input
                         type="password"
                         placeholder="Senha"
+                        obrigatorio
+                        maxLength={72}
                         value={senha}
                         onChange={(event) => setSenha(event.target.value)}
                         erro={erroSenha}

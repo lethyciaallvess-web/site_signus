@@ -3,6 +3,8 @@ import type { FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Input } from "../../components/Input";
 import { Botao } from "../../components/Botao";
+import { validarCodigo, validarTexto } from "../../utils/validacoes";
+import { mascararCodigo, mascararTexto } from "../../utils/mascaras";
 import { atualizarItem, buscarItem, criarItem } from "../../services/itens";
 import { ApiError } from "../../services/api";
 
@@ -86,18 +88,24 @@ export function ItemForm() {
             novosErros.codigo = "Informe o código.";
         } else if (codigo.length > 50) {
             novosErros.codigo = "O código deve ter no máximo 50 caracteres.";
+        } else if (!validarCodigo(codigo)) {
+            novosErros.codigo = "Use apenas letras, números, hífen e underline.";
         }
 
         if (nome === "") {
             novosErros.nome = "Informe o nome.";
         } else if (nome.length < 3 || nome.length > 150) {
             novosErros.nome = "O nome deve ter entre 3 e 150 caracteres.";
+        } else if (!validarTexto(nome)) {
+            novosErros.nome = "Use apenas letras, números, espaço, ponto, vírgula e hífen.";
         }
 
         if (categoria === "") {
             novosErros.categoria = "Informe a categoria.";
         } else if (categoria.length < 3 || categoria.length > 80) {
             novosErros.categoria = "A categoria deve ter entre 3 e 80 caracteres.";
+        } else if (!validarTexto(categoria)) {
+            novosErros.categoria = "Use apenas letras, números, espaço, ponto, vírgula e hífen.";
         }
 
         setErros(novosErros);
@@ -145,8 +153,10 @@ export function ItemForm() {
                 <Input
                     type="text"
                     placeholder="Código"
+                    obrigatorio
+                    maxLength={50}
                     value={form.codigo}
-                    onChange={(event) => setForm({ ...form, codigo: event.target.value })}
+                    onChange={(event) => setForm({ ...form, codigo: mascararCodigo(event.target.value) })}
                     erro={erros.codigo}
                     disabled={id !== undefined}
                 />
@@ -154,16 +164,20 @@ export function ItemForm() {
                 <Input
                     type="text"
                     placeholder="Nome"
+                    obrigatorio
+                    maxLength={150}
                     value={form.nome}
-                    onChange={(event) => setForm({ ...form, nome: event.target.value })}
+                    onChange={(event) => setForm({ ...form, nome: mascararTexto(event.target.value) })}
                     erro={erros.nome}
                 />
 
                 <Input
                     type="text"
                     placeholder="Categoria"
+                    obrigatorio
+                    maxLength={80}
                     value={form.categoria}
-                    onChange={(event) => setForm({ ...form, categoria: event.target.value })}
+                    onChange={(event) => setForm({ ...form, categoria: mascararTexto(event.target.value) })}
                     erro={erros.categoria}
                 />
 

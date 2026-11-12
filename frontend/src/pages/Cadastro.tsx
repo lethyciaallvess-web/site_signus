@@ -1,8 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { validarEmail, validarCpf, somenteNumeros, REGEX_SENHA } from "../utils/validacoes";
-import { mascararCpf } from "../utils/mascaras";
+import { validarEmail, validarCpf, validarNome, somenteNumeros, REGEX_SENHA } from "../utils/validacoes";
+import { mascararCpf, mascararNome } from "../utils/mascaras";
 import { Input } from "../components/Input";
 import { cadastrar } from "../services/autenticacao";
 import { ApiError } from "../services/api";
@@ -39,6 +39,8 @@ export function Cadastro() {
             novosErros.nome = "Informe o nome.";
         } else if (nome.trim().length < 3) {
             novosErros.nome = "O nome deve ter pelo menos 3 caracteres.";
+        } else if (!validarNome(nome)) {
+            novosErros.nome = "Use apenas letras no nome.";
         }
 
         if (email === "") {
@@ -117,14 +119,19 @@ export function Cadastro() {
                     <Input
                         type="text"
                         placeholder="Nome completo"
+                        obrigatorio
+                        maxLength={180}
                         value={nome}
-                        onChange={(event) => setNome(event.target.value)}
+                        onChange={(event) => setNome(mascararNome(event.target.value))}
                         erro={erros.nome}
                     />
 
                     <Input
                         type="email"
                         placeholder="E-mail"
+                        obrigatorio
+                        maxLength={255}
+                        inputMode="email"
                         value={email}
                         onChange={(event) => setEmail(event.target.value)}
                         erro={erros.email}
@@ -133,6 +140,9 @@ export function Cadastro() {
                     <Input
                         type="text"
                         placeholder="CPF"
+                        obrigatorio
+                        maxLength={14}
+                        inputMode="numeric"
                         value={cpf}
                         onChange={(event) => setCpf(mascararCpf(event.target.value))}
                         erro={erros.cpf}
@@ -141,6 +151,8 @@ export function Cadastro() {
                     <Input
                         type="password"
                         placeholder="Senha"
+                        obrigatorio
+                        maxLength={72}
                         value={senha}
                         onChange={(event) => setSenha(event.target.value)}
                         erro={erros.senha}
@@ -149,6 +161,8 @@ export function Cadastro() {
                     <Input
                         type="password"
                         placeholder="Confirmar senha"
+                        obrigatorio
+                        maxLength={72}
                         value={confirmarSenha}
                         onChange={(event) => setConfirmarSenha(event.target.value)}
                         erro={erros.confirmarSenha}

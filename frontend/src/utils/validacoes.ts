@@ -37,3 +37,50 @@ export function validarCpf(cpf: string) {
 }
 
 export const REGEX_SENHA = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).+$/;
+
+export const REGEX_NOME = /^[A-Za-zÀ-ÖØ-öø-ÿ]+(?:[ '-][A-Za-zÀ-ÖØ-öø-ÿ]+)*$/;
+
+export const REGEX_TEXTO = /^[A-Za-zÀ-ÖØ-öø-ÿ0-9][A-Za-zÀ-ÖØ-öø-ÿ0-9 .,-]*$/;
+
+export const REGEX_CODIGO = /^[A-Za-z0-9_-]+$/;
+
+export function validarNome(nome: string) {
+  return REGEX_NOME.test(nome.trim());
+}
+
+export function validarCodigo(codigo: string) {
+  return REGEX_CODIGO.test(codigo.trim());
+}
+
+export function validarTexto(texto: string) {
+  return REGEX_TEXTO.test(texto.trim());
+}
+
+function calcularDigitoCnpj(base: string, pesos: number[]) {
+  let soma = 0;
+
+  for (let i = 0; i < pesos.length; i++) {
+    soma += Number(base[i]) * pesos[i];
+  }
+
+  const resto = soma % 11;
+
+  return resto < 2 ? 0 : 11 - resto;
+}
+
+export function validarCnpj(cnpj: string) {
+  const numeros = somenteNumeros(cnpj);
+
+  if (numeros.length !== 14) {
+    return false;
+  }
+
+  if (/^(\d)\1{13}$/.test(numeros)) {
+    return false;
+  }
+
+  const digito1 = calcularDigitoCnpj(numeros.slice(0, 12), [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]);
+  const digito2 = calcularDigitoCnpj(numeros.slice(0, 13), [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]);
+
+  return digito1 === Number(numeros[12]) && digito2 === Number(numeros[13]);
+}

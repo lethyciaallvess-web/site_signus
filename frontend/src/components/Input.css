@@ -27,13 +27,78 @@
   box-shadow: 0 1px 0 var(--campo-foco, var(--blue));
 }
 
+.form-field input[aria-invalid="true"] {
+  border-bottom-color: var(--error);
+}
+
+.form-field input:disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
 
 .field-error {
   color: var(--error);
   font-size: 0.8rem;
 }
 
-.form-field input:disabled {
+.form-field-controle {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.form-field-controle input {
+  padding-right: 40px;
+}
+
+.form-field-controle input::-ms-reveal,
+.form-field-controle input::-ms-clear {
+  display: none;
+}
+
+.form-field-olho {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
   color: var(--text-muted);
+  line-height: 1;
+  cursor: pointer;
+  appearance: none;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.form-field-olho svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+
+.form-field-olho:hover:not(:disabled) {
+  background-color: rgba(128, 140, 165, 0.18);
+  color: var(--text);
+}
+
+.form-field-olho[aria-pressed="true"] {
+  color: var(--campo-foco, var(--blue));
+}
+
+.form-field-olho:focus-visible {
+  outline: 2px solid var(--campo-foco, var(--blue));
+  outline-offset: 1px;
+}
+
+.form-field-olho:disabled {
+  opacity: 0.4;
   cursor: not-allowed;
 }

@@ -2,15 +2,18 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Tabela } from "../../components/Tabela";
 import { Paginacao } from "../../components/Paginacao";
-import { listarPlanos } from "../../services/planos";
+import { Botao } from "../../components/Botao";
+import { excluirPlano, listarPlanos } from "../../services/planos";
 import type { Plano } from "../../services/planos";
 import { ApiError } from "../../services/api";
 import type { Pagina } from "../../types/pagina";
 
 export function PlanosLista() {
     const [pagina, setPagina] = useState(1);
+    const [atualizacao, setAtualizacao] = useState(0);
     const [resposta, setResposta] = useState<Pagina<Plano> | null>(null);
     const [erro, setErro] = useState("");
+    const [erroExcluir, setErroExcluir] = useState("");
 
     useEffect(() => {
         let ativo = true;
@@ -35,7 +38,31 @@ export function PlanosLista() {
         return () => {
             ativo = false;
         };
-    }, [pagina]);
+    }, [pagina, atualizacao]);
+
+    async function handleExcluir(plano: Plano) {
+        if (!window.confirm(`Excluir o plano "${plano.nome}"?`)) {
+            return;
+        }
+
+        setErroExcluir("");
+
+        try {
+            await excluirPlano(plano.id);
+            if (resposta && resposta.dados.length === 1 && pagina > 1) {
+                setPagina(pagina - 1);
+            } else {
+                setAtualizacao(atualizacao + 1);
+            }
+        } catch (erroApi) {
+            setErroExcluir(
+                erroApi instanceof ApiError
+                    ? erroApi.message
+                    : "Erro inesperado. Tente novamente."
+            );
+            setAtualizacao(atualizacao + 1);
+        }
+    }
 
     if (erro) {
         return (
@@ -58,6 +85,12 @@ export function PlanosLista() {
                 </Link>
             </div>
 
+            {erroExcluir && (
+                <p role="alert" className="form-alert">
+                    {erroExcluir}
+                </p>
+            )}
+
             <Tabela
                 dados={resposta.dados}
                 chave={(plano) => plano.id}
@@ -78,7 +111,16 @@ export function PlanosLista() {
                     {
                         titulo: "Ações",
                         render: (plano) => (
-                            <Link to={`/admin/planos/${plano.id}/editar`}>Editar</Link>
+                            <div className="acoes">
+                                <Link to={`/admin/planos/${plano.id}/editar`}>Editar</Link>
+                                <Botao
+                                    type="button"
+                                    variante="perigo"
+                                    onClick={() => handleExcluir(plano)}
+                                >
+                                    Excluir
+                                </Botao>
+                            </div>
                         ),
                     },
                 ]}

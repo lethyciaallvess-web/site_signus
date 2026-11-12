@@ -1,0 +1,37 @@
+.campo-busca {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 420px;
+  margin-bottom: 16px;
+}
+
+.campo-busca-icone {
+  position: absolute;
+  left: 12px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.campo-busca input {
+  width: 100%;
+  padding: 10px 12px 10px 38px;
+  border: 1px solid var(--campo-borda);
+  border-radius: 8px;
+  background-color: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.95rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.campo-busca input::placeholder {
+  color: var(--text-muted);
+}
+
+.campo-busca input:focus {
+  outline: none;
+  border-color: var(--campo-foco, var(--blue));
+  box-shadow: 0 0 0 3px rgba(31, 95, 191, 0.15);
+}

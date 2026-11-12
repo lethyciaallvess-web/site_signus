@@ -14,13 +14,32 @@ type SelectProps = {
     textoVazio?: string;
     erro?: string;
     disabled?: boolean;
+    obrigatorio?: boolean;
 };
 
-export function Select({ rotulo, value, onChange, opcoes, textoVazio, erro, disabled }: SelectProps) {
+export function Select({
+    rotulo,
+    value,
+    onChange,
+    opcoes,
+    textoVazio,
+    erro,
+    disabled,
+    obrigatorio,
+}: SelectProps) {
     return (
         <div className="form-field">
-            <select aria-label={rotulo} value={value} onChange={onChange} disabled={disabled}>
-                {textoVazio !== undefined && <option value="">{textoVazio}</option>}
+            <select
+                aria-label={rotulo}
+                aria-required={obrigatorio}
+                aria-invalid={erro ? true : undefined}
+                value={value}
+                onChange={onChange}
+                disabled={disabled}
+            >
+                {textoVazio !== undefined && (
+                    <option value="">{obrigatorio ? `${textoVazio} *` : textoVazio}</option>
+                )}
                 {opcoes.map((opcao) => (
                     <option key={opcao.valor} value={opcao.valor}>
                         {opcao.texto}

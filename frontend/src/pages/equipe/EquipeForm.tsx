@@ -6,8 +6,8 @@ import { Select } from "../../components/Select";
 import { Botao } from "../../components/Botao";
 import { criarFuncionario } from "../../services/equipe";
 import { ApiError } from "../../services/api";
-import { REGEX_SENHA, somenteNumeros, validarCpf, validarEmail } from "../../utils/validacoes";
-import { mascararCpf } from "../../utils/mascaras";
+import { REGEX_SENHA, somenteNumeros, validarCpf, validarEmail, validarNome } from "../../utils/validacoes";
+import { mascararCpf, mascararNome } from "../../utils/mascaras";
 import { PERFIL_ADMIN, PERFIL_OPERADOR } from "../../utils/perfis";
 
 type FormFuncionario = {
@@ -55,6 +55,8 @@ export function EquipeForm() {
             novosErros.nome = "Informe o nome.";
         } else if (nome.length < 3 || nome.length > 180) {
             novosErros.nome = "O nome deve ter entre 3 e 180 caracteres.";
+        } else if (!validarNome(nome)) {
+            novosErros.nome = "Use apenas letras no nome.";
         }
 
         if (email === "") {
@@ -119,14 +121,19 @@ export function EquipeForm() {
                 <Input
                     type="text"
                     placeholder="Nome completo"
+                    obrigatorio
+                    maxLength={180}
                     value={form.nome}
-                    onChange={(event) => setForm({ ...form, nome: event.target.value })}
+                    onChange={(event) => setForm({ ...form, nome: mascararNome(event.target.value) })}
                     erro={erros.nome}
                 />
 
                 <Input
                     type="email"
                     placeholder="E-mail"
+                    obrigatorio
+                    maxLength={255}
+                    inputMode="email"
                     value={form.email}
                     onChange={(event) => setForm({ ...form, email: event.target.value })}
                     erro={erros.email}
@@ -135,6 +142,9 @@ export function EquipeForm() {
                 <Input
                     type="text"
                     placeholder="CPF"
+                    obrigatorio
+                    maxLength={14}
+                    inputMode="numeric"
                     value={form.cpf}
                     onChange={(event) => setForm({ ...form, cpf: mascararCpf(event.target.value) })}
                     erro={erros.cpf}
@@ -153,6 +163,8 @@ export function EquipeForm() {
                 <Input
                     type="password"
                     placeholder="Senha"
+                    obrigatorio
+                    maxLength={72}
                     value={form.senha}
                     onChange={(event) => setForm({ ...form, senha: event.target.value })}
                     erro={erros.senha}
@@ -161,6 +173,8 @@ export function EquipeForm() {
                 <Input
                     type="password"
                     placeholder="Confirmar senha"
+                    obrigatorio
+                    maxLength={72}
                     value={form.confirmacaoSenha}
                     onChange={(event) => setForm({ ...form, confirmacaoSenha: event.target.value })}
                     erro={erros.confirmacaoSenha}

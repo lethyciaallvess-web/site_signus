@@ -1,8 +1,11 @@
 import { api } from "../api/axios";
 import type { Pagina } from "../types/pagina";
 
+export type TipoPessoa = "FISICA" | "JURIDICA";
+
 export type Cliente = {
     id: number;
+    tipoPessoa?: TipoPessoa;
     nome: string;
     documento: string;
     email: string;
@@ -11,6 +14,7 @@ export type Cliente = {
 };
 
 export type DadosCliente = {
+    tipoPessoa: TipoPessoa;
     nome: string;
     documento: string;
     email: string;
@@ -18,9 +22,9 @@ export type DadosCliente = {
     observacoes: string;
 };
 
-export async function listarClientes(pagina: number, limite = 10) {
+export async function listarClientes(pagina: number, limite = 10, busca = "") {
     const resposta = await api.get<Pagina<Cliente>>("/clientes", {
-        params: { pagina, limite },
+        params: { pagina, limite, busca: busca || undefined },
     });
     return resposta.data;
 }

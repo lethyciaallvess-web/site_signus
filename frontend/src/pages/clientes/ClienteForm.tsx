@@ -2,13 +2,28 @@ import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Input } from "../../components/Input";
+import { Select } from "../../components/Select";
 import { Botao } from "../../components/Botao";
 import { atualizarCliente, buscarCliente, criarCliente } from "../../services/clientes";
+import type { TipoPessoa } from "../../services/clientes";
 import { ApiError } from "../../services/api";
-import { somenteNumeros, validarCpf, validarEmail } from "../../utils/validacoes";
-import { mascararCpf, mascararTelefone } from "../../utils/mascaras";
+import {
+    somenteNumeros,
+    validarCnpj,
+    validarCpf,
+    validarEmail,
+    validarNome,
+    validarTexto,
+} from "../../utils/validacoes";
+import {
+    mascararDocumento,
+    mascararNome,
+    mascararTelefone,
+    mascararTexto,
+} from "../../utils/mascaras";
 
 type FormCliente = {
+    tipoPessoa: TipoPessoa;
     nome: string;
     documento: string;
     email: string;
@@ -24,6 +39,7 @@ type Erros = {
 };
 
 const formVazio: FormCliente = {
+    tipoPessoa: "FISICA",
     nome: "",
     documento: "",
     email: "",
@@ -50,9 +66,12 @@ export function ClienteForm() {
         buscarCliente(Number(id))
             .then((cliente) => {
                 if (ativo) {
+                    const tipoPessoa = cliente.tipoPessoa ?? "FISICA";
+
                     setForm({
+                        tipoPessoa,
                         nome: cliente.nome,
-                        documento: mascararCpf(cliente.documento),
+                        documento: mascararDocumento(cliente.documento, tipoPessoa),
                         email: cliente.email,
                         telefone: mascararTelefone(cliente.telefone),
                         observacoes: cliente.observacoes ?? "",
@@ -84,17 +103,23 @@ export function ClienteForm() {
         const nome = form.nome.trim();
         const email = form.email.trim();
         const telefone = somenteNumeros(form.telefone);
+        const juridica = form.tipoPessoa === "JURIDICA";
+        const rotuloDocumento = juridica ? "CNPJ" : "CPF";
 
         if (nome === "") {
-            novosErros.nome = "Informe o nome.";
+            novosErros.nome = juridica ? "Informe a razão social." : "Informe o nome.";
         } else if (nome.length < 3 || nome.length > 180) {
             novosErros.nome = "O nome deve ter entre 3 e 180 caracteres.";
+        } else if (juridica && !validarTexto(nome)) {
+            novosErros.nome = "Use apenas letras, números, espaço, ponto, vírgula e hífen.";
+        } else if (!juridica && !validarNome(nome)) {
+            novosErros.nome = "Use apenas letras no nome.";
         }
 
         if (form.documento === "") {
-            novosErros.documento = "Informe o CPF.";
-        } else if (!validarCpf(form.documento)) {
-            novosErros.documento = "CPF inválido.";
+            novosErros.documento = `Informe o ${rotuloDocumento}.`;
+        } else if (juridica ? !validarCnpj(form.documento) : !validarCpf(form.documento)) {
+            novosErros.documento = `${rotuloDocumento} inválido.`;
         }
 
         if (email === "") {
@@ -114,10 +139,11 @@ export function ClienteForm() {
         }
 
         const dados = {
+            tipoPessoa: form.tipoPessoa,
             nome,
             documento: somenteNumeros(form.documento),
             email,
-            telefone: form.telefone,
+            telefone,
             observacoes: form.observacoes.trim(),
         };
 
@@ -144,25 +170,60 @@ export function ClienteForm() {
         return <p role="status">Carregando...</p>;
     }
 
+    const juridica = form.tipoPessoa === "JURIDICA";
+
     return (
         <div>
             <h1>{id === undefined ? "Novo cliente" : "Editar cliente"}</h1>
 
             <form onSubmit={handleSubmit} noValidate className="formulario">
+                <Select
+                    rotulo="Tipo de cliente"
+                    obrigatorio
+                    value={form.tipoPessoa}
+                    onChange={(event) =>
+                        setForm({
+                            ...form,
+                            tipoPessoa: event.target.value as TipoPessoa,
+                            documento: "",
+                        })
+                    }
+                    opcoes={[
+                        { valor: "FISICA", texto: "Pessoa física" },
+                        { valor: "JURIDICA", texto: "Pessoa jurídica" },
+                    ]}
+                    disabled={id !== undefined}
+                />
+
                 <Input
                     type="text"
-                    placeholder="Nome completo"
+                    placeholder={juridica ? "Razão social" : "Nome completo"}
+                    obrigatorio
+                    maxLength={180}
                     value={form.nome}
-                    onChange={(event) => setForm({ ...form, nome: event.target.value })}
+                    onChange={(event) =>
+                        setForm({
+                            ...form,
+                            nome: juridica
+                                ? mascararTexto(event.target.value)
+                                : mascararNome(event.target.value),
+                        })
+                    }
                     erro={erros.nome}
                 />
 
                 <Input
                     type="text"
-                    placeholder="CPF"
+                    placeholder={juridica ? "CNPJ" : "CPF"}
+                    obrigatorio
+                    maxLength={juridica ? 18 : 14}
+                    inputMode="numeric"
                     value={form.documento}
                     onChange={(event) =>
-                        setForm({ ...form, documento: mascararCpf(event.target.value) })
+                        setForm({
+                            ...form,
+                            documento: mascararDocumento(event.target.value, form.tipoPessoa),
+                        })
                     }
                     erro={erros.documento}
                 />
@@ -170,6 +231,9 @@ export function ClienteForm() {
                 <Input
                     type="email"
                     placeholder="E-mail"
+                    obrigatorio
+                    maxLength={255}
+                    inputMode="email"
                     value={form.email}
                     onChange={(event) => setForm({ ...form, email: event.target.value })}
                     erro={erros.email}
@@ -178,6 +242,8 @@ export function ClienteForm() {
                 <Input
                     type="text"
                     placeholder="Telefone (opcional)"
+                    maxLength={15}
+                    inputMode="tel"
                     value={form.telefone}
                     onChange={(event) =>
                         setForm({ ...form, telefone: mascararTelefone(event.target.value) })

@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Tabela } from "../../components/Tabela";
 import { Paginacao } from "../../components/Paginacao";
 import { Botao } from "../../components/Botao";
+import { CampoBusca } from "../../components/CampoBusca";
 import { excluirEvento, listarEventos } from "../../services/eventos";
 import type { Evento } from "../../services/eventos";
 import { ApiError } from "../../services/api";
@@ -11,6 +12,9 @@ import { formatarDataHora, rotulosStatus } from "../../utils/formatacoes";
 
 export function EventosLista() {
     const [pagina, setPagina] = useState(1);
+    const [busca, setBusca] = useState("");
+    const [termo, setTermo] = useState("");
+    const temporizador = useRef<number | undefined>(undefined);
     const [atualizacao, setAtualizacao] = useState(0);
     const [resposta, setResposta] = useState<Pagina<Evento> | null>(null);
     const [erro, setErro] = useState("");
@@ -19,7 +23,7 @@ export function EventosLista() {
     useEffect(() => {
         let ativo = true;
 
-        listarEventos(pagina)
+        listarEventos(pagina, 10, termo)
             .then((dados) => {
                 if (ativo) {
                     setResposta(dados);
@@ -39,7 +43,20 @@ export function EventosLista() {
         return () => {
             ativo = false;
         };
-    }, [pagina, atualizacao]);
+    }, [pagina, termo, atualizacao]);
+
+    useEffect(() => {
+        return () => window.clearTimeout(temporizador.current);
+    }, []);
+
+    function handleBusca(valor: string) {
+        setBusca(valor);
+        window.clearTimeout(temporizador.current);
+        temporizador.current = window.setTimeout(() => {
+            setTermo(valor.trim());
+            setPagina(1);
+        }, 400);
+    }
 
     async function handleExcluir(evento: Evento) {
         if (!window.confirm(`Excluir o evento "${evento.nome}"?`)) {
@@ -92,10 +109,16 @@ export function EventosLista() {
                 </p>
             )}
 
+            <CampoBusca
+                valor={busca}
+                placeholder="Buscar por evento, cliente ou plano"
+                aoMudar={handleBusca}
+            />
+
             <Tabela
                 dados={resposta.dados}
                 chave={(evento) => evento.id}
-                mensagemVazia="Nenhum evento cadastrado."
+                mensagemVazia={termo ? "Nenhum evento encontrado para essa busca." : "Nenhum evento cadastrado."}
                 colunas={[
                     { titulo: "Evento", render: (evento) => evento.nome },
                     { titulo: "Cliente", render: (evento) => evento.cliente?.nome ?? "—" },

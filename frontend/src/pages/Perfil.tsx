@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { REGEX_SENHA } from "../utils/validacoes";
+import { REGEX_SENHA, validarCpf, validarNome, somenteNumeros } from "../utils/validacoes";
+import { mascararCpf, mascararNome } from "../utils/mascaras";
 import { rotaInicial } from "../utils/perfis";
 import { formatarIniciais, rotulosPerfil } from "../utils/formatacoes";
 import { Input } from "../components/Input";
@@ -12,10 +13,11 @@ import { useUsuario } from "../contexts/UsuarioContext";
 import "./Auth.css";
 import "./Perfil.css";
 
-type Secao = "nome" | "senha" | null;
+type Secao = "nome" | "cpf" | "senha" | null;
 
 interface Erros {
     nome?: string;
+    cpf?: string;
     senhaAtual?: string;
     senha?: string;
     confirmarSenha?: string;
@@ -39,6 +41,7 @@ export function Perfil() {
     const { usuario, atualizarUsuario } = useUsuario();
     const [editando, setEditando] = useState<Secao>(null);
     const [nome, setNome] = useState(usuario?.nome ?? "");
+    const [cpf, setCpf] = useState("");
     const [senhaAtual, setSenhaAtual] = useState("");
     const [senha, setSenha] = useState("");
     const [confirmarSenha, setConfirmarSenha] = useState("");
@@ -53,6 +56,7 @@ export function Perfil() {
         setErroGeral("");
         setSucesso("");
         setNome(usuario?.nome ?? "");
+        setCpf("");
         setSenhaAtual("");
         setSenha("");
         setConfirmarSenha("");
@@ -62,6 +66,7 @@ export function Perfil() {
         setEditando(null);
         setErros({});
         setErroGeral("");
+        setCpf("");
         setSenhaAtual("");
         setSenha("");
         setConfirmarSenha("");
@@ -77,6 +82,8 @@ export function Perfil() {
             novosErros.nome = "Informe o nome.";
         } else if (nome.trim().length < 3) {
             novosErros.nome = "O nome deve ter pelo menos 3 caracteres.";
+        } else if (!validarNome(nome)) {
+            novosErros.nome = "Use apenas letras no nome.";
         }
 
         setErros(novosErros);
@@ -95,6 +102,39 @@ export function Perfil() {
 
             setEditando(null);
             setSucesso("Nome atualizado com sucesso.");
+        } catch (erro) {
+            setErroGeral(
+                erro instanceof ApiError ? erro.message : "Erro inesperado. Tente novamente."
+            );
+        } finally {
+            setEnviando(false);
+        }
+    }
+
+    async function handleSubmitCpf(event: FormEvent) {
+        event.preventDefault();
+        setErroGeral("");
+
+        const novosErros: Erros = {};
+
+        if (cpf.trim() === "") {
+            novosErros.cpf = "Informe o CPF.";
+        } else if (!validarCpf(cpf)) {
+            novosErros.cpf = "CPF inválido.";
+        }
+
+        setErros(novosErros);
+
+        if (Object.keys(novosErros).length > 0) {
+            return;
+        }
+
+        setEnviando(true);
+        try {
+            await atualizarPerfilParcial({ cpf: somenteNumeros(cpf) });
+            setCpf("");
+            setEditando(null);
+            setSucesso("CPF atualizado com sucesso.");
         } catch (erro) {
             setErroGeral(
                 erro instanceof ApiError ? erro.message : "Erro inesperado. Tente novamente."
@@ -209,8 +249,10 @@ export function Perfil() {
                             <Input
                                 type="text"
                                 placeholder="Nome completo"
+                                obrigatorio
+                                maxLength={180}
                                 value={nome}
-                                onChange={(event) => setNome(event.target.value)}
+                                onChange={(event) => setNome(mascararNome(event.target.value))}
                                 erro={erros.nome}
                             />
 
@@ -237,6 +279,53 @@ export function Perfil() {
 
                 <section className="perfil-secao">
                     <div className="perfil-secao-cabecalho">
+                        <h2>Documento</h2>
+                        {editando !== "cpf" && (
+                            <button
+                                type="button"
+                                className="perfil-link"
+                                onClick={() => handleAbrir("cpf")}
+                            >
+                                Alterar CPF
+                            </button>
+                        )}
+                    </div>
+
+                    {editando === "cpf" ? (
+                        <form onSubmit={handleSubmitCpf} noValidate className="perfil-form">
+                            <Input
+                                type="text"
+                                placeholder="000.000.000-00"
+                                obrigatorio
+                                maxLength={14}
+                                inputMode="numeric"
+                                value={cpf}
+                                onChange={(event) => setCpf(mascararCpf(event.target.value))}
+                                erro={erros.cpf}
+                            />
+
+                            <div className="perfil-acoes">
+                                <Botao type="submit" disabled={enviando}>
+                                    Salvar CPF
+                                </Botao>
+                                <button
+                                    type="button"
+                                    className="perfil-cancelar"
+                                    onClick={handleCancelar}
+                                >
+                                    Cancelar
+                                </button>
+                            </div>
+                        </form>
+                    ) : (
+                        <dl>
+                            <Linha rotulo="CPF" valor="•••.•••.•••-••" />
+                        </dl>
+                    )}
+                </section>
+
+                <section className="perfil-secao">
+                    <div className="perfil-secao-cabecalho">
                         <h2>Segurança</h2>
                         {editando !== "senha" && (
                             <button
@@ -254,6 +343,8 @@ export function Perfil() {
                             <Input
                                 type="password"
                                 placeholder="Senha atual"
+                                obrigatorio
+                                maxLength={72}
                                 value={senhaAtual}
                                 onChange={(event) => setSenhaAtual(event.target.value)}
                                 erro={erros.senhaAtual}
@@ -262,6 +353,8 @@ export function Perfil() {
                             <Input
                                 type="password"
                                 placeholder="Nova senha"
+                                obrigatorio
+                                maxLength={72}
                                 value={senha}
                                 onChange={(event) => setSenha(event.target.value)}
                                 erro={erros.senha}
@@ -270,6 +363,8 @@ export function Perfil() {
                             <Input
                                 type="password"
                                 placeholder="Confirmar nova senha"
+                                obrigatorio
+                                maxLength={72}
                                 value={confirmarSenha}
                                 onChange={(event) => setConfirmarSenha(event.target.value)}
                                 erro={erros.confirmarSenha}
