@@ -1,6 +1,7 @@
 import { criarApp } from "./app";
 import { ambiente } from "./config/ambiente";
-import { fonteDeDados } from "./config/banco";
+import { sequelize } from "./config/banco";
+import "./modelos";
 
 const TENTATIVAS = 15;
 const ESPERA_MS = 3000;
@@ -11,7 +12,7 @@ const esperar = (ms: number) =>
 async function conectarAoBanco(): Promise<void> {
   for (let tentativa = 1; tentativa <= TENTATIVAS; tentativa++) {
     try {
-      await fonteDeDados.initialize();
+      await sequelize.authenticate();
       console.log("Banco de dados conectado.");
       return;
     } catch (erro) {
@@ -28,7 +29,7 @@ async function conectarAoBanco(): Promise<void> {
 
 async function iniciar(): Promise<void> {
   await conectarAoBanco();
-  criarApp(fonteDeDados).listen(ambiente.porta, () => {
+  criarApp().listen(ambiente.porta, () => {
     console.log(`API rodando na porta ${ambiente.porta}`);
   });
 }
