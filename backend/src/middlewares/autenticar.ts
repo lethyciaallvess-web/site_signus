@@ -1,9 +1,9 @@
 import type { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import type { DataSource } from "typeorm";
-import { Usuario } from "../entidades/usuario";
+import type { RepositorioDeUsuarios } from "../repositorios/usuario-repositorio";
 import { ambiente } from "../config/ambiente";
-import { NaoAutenticadoErro } from "../erros/erros-http";
+import type { PerfilUsuario } from "../entidades/usuario";
+import { AcessoNegadoErro, NaoAutenticadoErro } from "../erros/erros-http";
 import type {
   ConteudoJwt,
   UsuarioAutenticado,
@@ -45,11 +45,21 @@ export async function autenticar(
     throw new NaoAutenticadoErro("Token inválido ou expirado.");
   }
 
-  const fonte = req.app.locals.fonteDeDados as DataSource;
-  const usuario = await fonte.getRepository(Usuario).findOneBy({ id: conteudo.sub });
+  const usuarios = req.app.locals.usuarioRepositorio as RepositorioDeUsuarios;
+  const usuario = await usuarios.buscarPorId(conteudo.sub);
   if (!usuario) throw new NaoAutenticadoErro("Conta não encontrada. Entre novamente.");
   req.usuario = { id: usuario.id, email: usuario.email, perfil: usuario.perfil };
   next();
+}
+
+export function exigirPerfil(...perfis: PerfilUsuario[]) {
+  return (req: Request, _res: Response, next: NextFunction): void => {
+    const { perfil } = obterUsuarioAutenticado(req);
+    if (!perfis.includes(perfil)) {
+      throw new AcessoNegadoErro("Você não tem permissão para isso.");
+    }
+    next();
+  };
 }
 
 export function obterUsuarioAutenticado(req: Request): UsuarioAutenticado {

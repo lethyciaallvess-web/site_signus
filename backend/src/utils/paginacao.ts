@@ -11,6 +11,7 @@ export interface Pagina<T> {
 export interface ParametrosPaginacao {
   pagina: number;
   limite: number;
+  busca?: string;
 }
 
 const LIMITE_PADRAO = 10;
@@ -28,7 +29,8 @@ function lerInteiro(valor: unknown, padrao: number, rotulo: string): number {
 export function lerPaginacao(query: Record<string, unknown>): ParametrosPaginacao {
   const pagina = lerInteiro(query.pagina, 1, "A página");
   const limite = Math.min(lerInteiro(query.limite, LIMITE_PADRAO, "O limite"), LIMITE_MAXIMO);
-  return { pagina, limite };
+  const busca = typeof query.busca === "string" ? query.busca.trim() : "";
+  return { pagina, limite, busca: busca || undefined };
 }
 
 export function montarPagina<T>(
