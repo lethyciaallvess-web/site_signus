@@ -1,15 +1,28 @@
+.painel-pagina {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
+.admin-conteudo:has(.painel-pagina) {
+    overflow-y: hidden;
+    padding-top: 24px;
+    padding-bottom: 24px;
+}
+
 .resumo-grade {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 16px;
-    margin: 24px 0;
+    margin: 16px 0;
 }
 
 .cartao-resumo {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    padding: 20px;
+    gap: 2px;
+    padding: 14px 20px;
     border: 1px solid var(--border);
     border-radius: 16px;
     background: var(--surface);
@@ -25,7 +38,7 @@
 }
 
 .cartao-resumo-valor {
-    font-size: 2rem;
+    font-size: 1.7rem;
     font-weight: 700;
     color: #fff;
 }
@@ -38,14 +51,17 @@
     display: grid;
     grid-template-columns: 1fr 2fr;
     gap: 24px;
+    flex: 1;
+    min-height: 0;
 }
 
 .painel-bloco {
+    min-height: 0;
     padding: 20px;
     border: 1px solid var(--border);
     border-radius: 16px;
     background: var(--surface);
-    overflow-x: auto;
+    overflow: auto;
 }
 
 .painel-bloco h2 {
@@ -106,7 +122,19 @@
 }
 
 @media (max-width: 800px) {
+    .admin-conteudo:has(.painel-pagina) {
+        overflow-y: auto;
+    }
+
+    .painel-pagina {
+        height: auto;
+    }
+
     .painel-colunas {
         grid-template-columns: 1fr;
+    }
+
+    .painel-bloco {
+        overflow-x: auto;
     }
 }

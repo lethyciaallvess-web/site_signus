@@ -57,16 +57,17 @@ export type DadosEdicao = {
   cpf: string;
   senha: string;
   confirmacaoSenha: string;
+  senhaAtual: string;
 };
 
 export async function atualizarPerfil(dados: DadosEdicao): Promise<Usuario> {
-  const resposta = await api.put<Usuario>("/usuarios/me", dados);
+  const resposta = await api.patch<Usuario>("/usuarios/me", dados);
   return resposta.data;
 }
 
 export async function atualizarPerfilParcial(
   dados: Partial<DadosEdicao>
 ): Promise<Usuario> {
-  const resposta = await api.put<Usuario>("/usuarios/me", dados);
+  const resposta = await api.patch<Usuario>("/usuarios/me", dados);
   return resposta.data;
 }

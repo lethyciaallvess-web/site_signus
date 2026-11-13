@@ -75,3 +75,9 @@ export function mascararCnpj(valor: string) {
 export function mascararDocumento(valor: string, tipo: "FISICA" | "JURIDICA") {
     return tipo === "JURIDICA" ? mascararCnpj(valor) : mascararCpf(valor);
 }
+
+export function mascararCpfOuCnpj(valor: string) {
+    const numeros = valor.replace(/\D/g, "");
+
+    return numeros.length <= 11 ? mascararCpf(numeros) : mascararCnpj(numeros);
+}

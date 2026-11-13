@@ -133,7 +133,7 @@ export function Home() {
     if (carregando) return <p>Carregando...</p>;
 
     return (
-        <div>
+        <div className="painel-pagina">
             <h1>Painel</h1>
             <p>Olá, {usuario?.nome}</p>
 

@@ -1,10 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { Input } from "../../components/Input";
 import { Select } from "../../components/Select";
 import { Botao } from "../../components/Botao";
-import { criarFuncionario } from "../../services/equipe";
+import {
+    atualizarFuncionario,
+    buscarFuncionario,
+    criarFuncionario,
+} from "../../services/equipe";
 import { ApiError } from "../../services/api";
 import { REGEX_SENHA, somenteNumeros, validarCpf, validarEmail, validarNome } from "../../utils/validacoes";
 import { mascararCpf, mascararNome } from "../../utils/mascaras";
@@ -37,11 +41,55 @@ const formVazio: FormFuncionario = {
 };
 
 export function EquipeForm() {
+    const { id } = useParams();
     const navigate = useNavigate();
+    const editando = id !== undefined;
     const [form, setForm] = useState<FormFuncionario>(formVazio);
     const [erros, setErros] = useState<Erros>({});
     const [erroGeral, setErroGeral] = useState("");
+    const [carregando, setCarregando] = useState(editando);
     const [enviando, setEnviando] = useState(false);
+
+    useEffect(() => {
+        if (id === undefined) {
+            return;
+        }
+
+        let ativo = true;
+
+        buscarFuncionario(Number(id))
+            .then((funcionario) => {
+                if (!ativo) return;
+
+                if (funcionario.perfil === PERFIL_ADMIN) {
+                    setErroGeral("Administradores não podem ser editados.");
+                    return;
+                }
+
+                setForm({
+                    ...formVazio,
+                    nome: funcionario.nome,
+                    email: funcionario.email,
+                    perfil: funcionario.perfil,
+                });
+            })
+            .catch((erroApi) => {
+                if (ativo) {
+                    setErroGeral(
+                        erroApi instanceof ApiError
+                            ? erroApi.message
+                            : "Erro inesperado. Tente novamente."
+                    );
+                }
+            })
+            .finally(() => {
+                if (ativo) setCarregando(false);
+            });
+
+        return () => {
+            ativo = false;
+        };
+    }, [id]);
 
     async function handleSubmit(event: FormEvent) {
         event.preventDefault();
@@ -65,24 +113,26 @@ export function EquipeForm() {
             novosErros.email = "E-mail inválido.";
         }
 
-        if (form.cpf === "") {
-            novosErros.cpf = "Informe o CPF.";
-        } else if (!validarCpf(form.cpf)) {
-            novosErros.cpf = "CPF inválido.";
-        }
+        if (!editando) {
+            if (form.cpf === "") {
+                novosErros.cpf = "Informe o CPF.";
+            } else if (!validarCpf(form.cpf)) {
+                novosErros.cpf = "CPF inválido.";
+            }
 
-        if (form.senha === "") {
-            novosErros.senha = "Informe a senha.";
-        } else if (form.senha.length < 8) {
-            novosErros.senha = "A senha deve ter pelo menos 8 caracteres.";
-        } else if (!REGEX_SENHA.test(form.senha)) {
-            novosErros.senha = "Use letra maiúscula, minúscula, número e caractere especial.";
-        }
+            if (form.senha === "") {
+                novosErros.senha = "Informe a senha.";
+            } else if (form.senha.length < 8) {
+                novosErros.senha = "A senha deve ter pelo menos 8 caracteres.";
+            } else if (!REGEX_SENHA.test(form.senha)) {
+                novosErros.senha = "Use letra maiúscula, minúscula, número e caractere especial.";
+            }
 
-        if (form.confirmacaoSenha === "") {
-            novosErros.confirmacaoSenha = "Confirme a senha.";
-        } else if (form.senha !== form.confirmacaoSenha) {
-            novosErros.confirmacaoSenha = "As senhas não conferem.";
+            if (form.confirmacaoSenha === "") {
+                novosErros.confirmacaoSenha = "Confirme a senha.";
+            } else if (form.senha !== form.confirmacaoSenha) {
+                novosErros.confirmacaoSenha = "As senhas não conferem.";
+            }
         }
 
         setErros(novosErros);
@@ -93,14 +143,22 @@ export function EquipeForm() {
 
         setEnviando(true);
         try {
-            await criarFuncionario({
-                nome,
-                email,
-                cpf: somenteNumeros(form.cpf),
-                perfil: form.perfil,
-                senha: form.senha,
-                confirmacaoSenha: form.confirmacaoSenha,
-            });
+            if (editando) {
+                await atualizarFuncionario(Number(id), {
+                    nome,
+                    email,
+                    perfil: form.perfil,
+                });
+            } else {
+                await criarFuncionario({
+                    nome,
+                    email,
+                    cpf: somenteNumeros(form.cpf),
+                    perfil: form.perfil,
+                    senha: form.senha,
+                    confirmacaoSenha: form.confirmacaoSenha,
+                });
+            }
             navigate("/admin/equipe");
         } catch (erroApi) {
             setErroGeral(
@@ -113,9 +171,13 @@ export function EquipeForm() {
         }
     }
 
+    if (carregando) {
+        return <p role="status">Carregando...</p>;
+    }
+
     return (
         <div>
-            <h1>Novo funcionário</h1>
+            <h1>{editando ? "Editar funcionário" : "Novo funcionário"}</h1>
 
             <form onSubmit={handleSubmit} noValidate className="formulario">
                 <Input
@@ -139,16 +201,18 @@ export function EquipeForm() {
                     erro={erros.email}
                 />
 
-                <Input
-                    type="text"
-                    placeholder="CPF"
-                    obrigatorio
-                    maxLength={14}
-                    inputMode="numeric"
-                    value={form.cpf}
-                    onChange={(event) => setForm({ ...form, cpf: mascararCpf(event.target.value) })}
-                    erro={erros.cpf}
-                />
+                {!editando && (
+                    <Input
+                        type="text"
+                        placeholder="CPF"
+                        obrigatorio
+                        maxLength={14}
+                        inputMode="numeric"
+                        value={form.cpf}
+                        onChange={(event) => setForm({ ...form, cpf: mascararCpf(event.target.value) })}
+                        erro={erros.cpf}
+                    />
+                )}
 
                 <Select
                     rotulo="Perfil"
@@ -160,25 +224,31 @@ export function EquipeForm() {
                     ]}
                 />
 
-                <Input
-                    type="password"
-                    placeholder="Senha"
-                    obrigatorio
-                    maxLength={72}
-                    value={form.senha}
-                    onChange={(event) => setForm({ ...form, senha: event.target.value })}
-                    erro={erros.senha}
-                />
+                {!editando && (
+                    <>
+                        <Input
+                            type="password"
+                            placeholder="Senha"
+                            obrigatorio
+                            maxLength={72}
+                            value={form.senha}
+                            onChange={(event) => setForm({ ...form, senha: event.target.value })}
+                            erro={erros.senha}
+                        />
 
-                <Input
-                    type="password"
-                    placeholder="Confirmar senha"
-                    obrigatorio
-                    maxLength={72}
-                    value={form.confirmacaoSenha}
-                    onChange={(event) => setForm({ ...form, confirmacaoSenha: event.target.value })}
-                    erro={erros.confirmacaoSenha}
-                />
+                        <Input
+                            type="password"
+                            placeholder="Confirmar senha"
+                            obrigatorio
+                            maxLength={72}
+                            value={form.confirmacaoSenha}
+                            onChange={(event) =>
+                                setForm({ ...form, confirmacaoSenha: event.target.value })
+                            }
+                            erro={erros.confirmacaoSenha}
+                        />
+                    </>
+                )}
 
                 {erroGeral && (
                     <p role="alert" className="form-alert">
@@ -188,7 +258,7 @@ export function EquipeForm() {
 
                 <div className="form-actions">
                     <Botao type="submit" disabled={enviando}>
-                        Cadastrar
+                        {editando ? "Salvar" : "Cadastrar"}
                     </Botao>
                     <Link to="/admin/equipe">Cancelar</Link>
                 </div>

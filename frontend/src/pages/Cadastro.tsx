@@ -1,8 +1,15 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { validarEmail, validarCpf, validarNome, somenteNumeros, REGEX_SENHA } from "../utils/validacoes";
-import { mascararCpf, mascararNome } from "../utils/mascaras";
+import {
+    validarEmail,
+    validarCpf,
+    validarCnpj,
+    validarNome,
+    somenteNumeros,
+    REGEX_SENHA,
+} from "../utils/validacoes";
+import { mascararCpfOuCnpj, mascararNome } from "../utils/mascaras";
 import { Input } from "../components/Input";
 import { cadastrar } from "../services/autenticacao";
 import { ApiError } from "../services/api";
@@ -13,7 +20,7 @@ import { Botao } from "../components/Botao";
 interface Erros {
     nome?: string;
     email?: string;
-    cpf?: string;
+    documento?: string;
     senha?: string;
     confirmarSenha?: string;
 }
@@ -22,7 +29,7 @@ export function Cadastro() {
     const navigate = useNavigate();
     const [nome, setNome] = useState("");
     const [email, setEmail] = useState("");
-    const [cpf, setCpf] = useState("");
+    const [documento, setDocumento] = useState("");
     const [senha, setSenha] = useState("");
     const [confirmarSenha, setConfirmarSenha] = useState("");
     const [erros, setErros] = useState<Erros>({});
@@ -49,10 +56,16 @@ export function Cadastro() {
             novosErros.email = "E-mail inválido.";
         }
 
-        if (cpf === "") {
-            novosErros.cpf = "Informe o CPF.";
-        } else if (!validarCpf(cpf)) {
-            novosErros.cpf = "CPF inválido.";
+        const numerosDocumento = somenteNumeros(documento);
+
+        if (documento === "") {
+            novosErros.documento = "Informe o CPF ou CNPJ.";
+        } else if (numerosDocumento.length <= 11) {
+            if (!validarCpf(documento)) {
+                novosErros.documento = "CPF inválido.";
+            }
+        } else if (!validarCnpj(documento)) {
+            novosErros.documento = "CNPJ inválido.";
         }
 
         if (senha === "") {
@@ -81,7 +94,7 @@ export function Cadastro() {
             await cadastrar({
                 nome,
                 email,
-                cpf: somenteNumeros(cpf),
+                cpf: numerosDocumento,
                 senha,
                 confirmacaoSenha: confirmarSenha,
             });
@@ -111,8 +124,8 @@ export function Cadastro() {
                 <h1 className="auth-title">Primeiro acesso</h1>
 
                 <p className="auth-aviso">
-                    Use o mesmo CPF e e-mail informados no seu orçamento. O acesso é liberado
-                    apenas para clientes da Signus.
+                    Use o mesmo CPF ou CNPJ e e-mail informados no seu orçamento. O acesso é
+                    liberado apenas para clientes da Signus.
                 </p>
 
                 <form onSubmit={handleSubmit} noValidate className="auth-form">
@@ -139,13 +152,13 @@ export function Cadastro() {
 
                     <Input
                         type="text"
-                        placeholder="CPF"
+                        placeholder="CPF ou CNPJ"
                         obrigatorio
-                        maxLength={14}
+                        maxLength={18}
                         inputMode="numeric"
-                        value={cpf}
-                        onChange={(event) => setCpf(mascararCpf(event.target.value))}
-                        erro={erros.cpf}
+                        value={documento}
+                        onChange={(event) => setDocumento(mascararCpfOuCnpj(event.target.value))}
+                        erro={erros.documento}
                     />
 
                     <Input

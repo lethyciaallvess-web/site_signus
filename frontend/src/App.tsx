@@ -67,7 +67,8 @@ function App() {
             <Route path="eventos/:id" element={<EventoFicha />} />
             <Route path="eventos/:id/editar" element={<EventoForm key="editar" />} />
             <Route path="equipe" element={<EquipeLista />} />
-            <Route path="equipe/novo" element={<EquipeForm />} />
+            <Route path="equipe/novo" element={<EquipeForm key="novo" />} />
+            <Route path="equipe/:id/editar" element={<EquipeForm key="editar" />} />
           </Route>
 
           <Route path="/login" element={<Login />} />

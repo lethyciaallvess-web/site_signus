@@ -30,6 +30,13 @@ body:has(.admin) {
 
 .admin-menu {
   width: 232px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  height: 100vh;
+  height: 100dvh;
+  overflow-y: auto;
   background: rgba(0, 0, 0, 0.38);
   border-right: 1px solid var(--border);
   padding: 24px 14px 20px;
@@ -61,7 +68,6 @@ body:has(.admin) {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  flex: 1;
 }
 
 .admin-menu a {
@@ -98,6 +104,7 @@ body:has(.admin) {
 }
 
 .admin-menu > p {
+  margin-top: auto;
   padding: 12px 12px 0;
   border-top: 1px solid var(--border);
   color: var(--text-muted);
@@ -111,6 +118,7 @@ body:has(.admin) {
   --btn-brilho: inset 0 0 0 1px var(--border);
   --btn-brilho-hover: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
   width: 100%;
+  flex-shrink: 0;
   padding: 10px 16px;
   font-size: 0.9rem;
   color: var(--text);
@@ -156,6 +164,9 @@ body:has(.admin) {
     top: 0;
     left: 0;
     bottom: 0;
+    height: 100vh;
+    height: 100dvh;
+    overflow-y: auto;
     z-index: 10;
     background: #020307;
     transform: translateX(-100%);

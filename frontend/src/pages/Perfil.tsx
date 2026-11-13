@@ -1,13 +1,19 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { REGEX_SENHA, validarCpf, validarNome, somenteNumeros } from "../utils/validacoes";
-import { mascararCpf, mascararNome } from "../utils/mascaras";
+import {
+    REGEX_SENHA,
+    validarCpf,
+    validarCnpj,
+    validarNome,
+    somenteNumeros,
+} from "../utils/validacoes";
+import { mascararCpfOuCnpj, mascararNome } from "../utils/mascaras";
 import { rotaInicial } from "../utils/perfis";
 import { formatarIniciais, rotulosPerfil } from "../utils/formatacoes";
 import { Input } from "../components/Input";
 import { Botao } from "../components/Botao";
-import { atualizarPerfilParcial, login } from "../services/autenticacao";
+import { atualizarPerfilParcial } from "../services/autenticacao";
 import { ApiError } from "../services/api";
 import { useUsuario } from "../contexts/UsuarioContext";
 import "./Auth.css";
@@ -116,11 +122,16 @@ export function Perfil() {
         setErroGeral("");
 
         const novosErros: Erros = {};
+        const numerosDocumento = somenteNumeros(cpf);
 
         if (cpf.trim() === "") {
-            novosErros.cpf = "Informe o CPF.";
-        } else if (!validarCpf(cpf)) {
-            novosErros.cpf = "CPF inválido.";
+            novosErros.cpf = "Informe o CPF ou CNPJ.";
+        } else if (numerosDocumento.length <= 11) {
+            if (!validarCpf(cpf)) {
+                novosErros.cpf = "CPF inválido.";
+            }
+        } else if (!validarCnpj(cpf)) {
+            novosErros.cpf = "CNPJ inválido.";
         }
 
         setErros(novosErros);
@@ -131,10 +142,10 @@ export function Perfil() {
 
         setEnviando(true);
         try {
-            await atualizarPerfilParcial({ cpf: somenteNumeros(cpf) });
+            await atualizarPerfilParcial({ cpf: numerosDocumento });
             setCpf("");
             setEditando(null);
-            setSucesso("CPF atualizado com sucesso.");
+            setSucesso("Documento atualizado com sucesso.");
         } catch (erro) {
             setErroGeral(
                 erro instanceof ApiError ? erro.message : "Erro inesperado. Tente novamente."
@@ -179,14 +190,8 @@ export function Perfil() {
 
         setEnviando(true);
         try {
-            try {
-                await login(usuario.email, senhaAtual);
-            } catch {
-                setErros({ senhaAtual: "Senha atual incorreta." });
-                return;
-            }
-
             await atualizarPerfilParcial({
+                senhaAtual,
                 senha,
                 confirmacaoSenha: confirmarSenha,
             });
@@ -286,7 +291,7 @@ export function Perfil() {
                                 className="perfil-link"
                                 onClick={() => handleAbrir("cpf")}
                             >
-                                Alterar CPF
+                                Alterar CPF/CNPJ
                             </button>
                         )}
                     </div>
@@ -295,18 +300,18 @@ export function Perfil() {
                         <form onSubmit={handleSubmitCpf} noValidate className="perfil-form">
                             <Input
                                 type="text"
-                                placeholder="000.000.000-00"
+                                placeholder="CPF ou CNPJ"
                                 obrigatorio
-                                maxLength={14}
+                                maxLength={18}
                                 inputMode="numeric"
                                 value={cpf}
-                                onChange={(event) => setCpf(mascararCpf(event.target.value))}
+                                onChange={(event) => setCpf(mascararCpfOuCnpj(event.target.value))}
                                 erro={erros.cpf}
                             />
 
                             <div className="perfil-acoes">
                                 <Botao type="submit" disabled={enviando}>
-                                    Salvar CPF
+                                    Salvar documento
                                 </Botao>
                                 <button
                                     type="button"
@@ -319,7 +324,7 @@ export function Perfil() {
                         </form>
                     ) : (
                         <dl>
-                            <Linha rotulo="CPF" valor="•••.•••.•••-••" />
+                            <Linha rotulo="CPF/CNPJ" valor="••••••••••••" />
                         </dl>
                     )}
                 </section>
