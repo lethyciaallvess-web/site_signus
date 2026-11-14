@@ -17,7 +17,7 @@
 ## Infra, banco e variáveis de ambiente
 - `.env`/`.env.example` da raiz (usados pelo Compose): `MYSQL_ROOT_PASSWORD`, `JWT_SECRET`. O Compose fixa `DB_DATABASE=signus`, `DB_USERNAME=root`, `DB_HOST=db`, `DB_PORT=3306` e define `PORT=3001` para o backend.
 - `backend/.env.example` usa nomes diferentes e `PORT=3000`; para execução em container/nginx, o alvo real é a porta `3001` (ver `compose.yml` e `nginx/nginx.conf`).
-- `compose.yml` inicializa o MySQL montando `./backend/database/BANCO-DE-DADOS-21-10.sql` em `/docker-entrypoint-initdb.d/init.sql` (só roda na criação inicial do volume `db_data`).
+- `compose.yml` inicializa o MySQL montando `./backend/database/banco-de-dados.sql` em `/docker-entrypoint-initdb.d/init.sql` (só roda na criação inicial do volume `db_data`).
 - `nginx/nginx.conf`: proxy de `/api/` e `/img/` para `backend:3001` e `/` para `frontend:5173` (porta 80 exposta).
 
 ## Convenções e cuidados

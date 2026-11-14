@@ -9,7 +9,7 @@ Use esta skill ao alterar orquestração Docker, imagens, proxy ou configuraçã
 
 ## Regras e contexto
 1. **Portas e proxy**: o backend roda na porta `3001`. O Nginx faz proxy de `/api/` e `/img/` para `backend:3001` e de `/` para `frontend:5173` (ver `compose.yml` e `nginx/nginx.conf`).
-2. **Banco e inicialização**: o MySQL é inicializado montando `./backend/database/BANCO-DE-DADOS-21-10.sql` em `/docker-entrypoint-initdb.d/init.sql`; esse script **só roda na criação inicial do volume `db_data`**.
+2. **Banco e inicialização**: o MySQL é inicializado montando `./backend/database/banco-de-dados.sql` em `/docker-entrypoint-initdb.d/init.sql`; esse script **só roda na criação inicial do volume `db_data`**.
 3. **Variáveis de ambiente sensíveis**: **NUNCA leia ou exiba arquivos `.env`**. Consulte/atualize apenas arquivos `*.env.example` quando precisar documentar variáveis.
 
 ## Ao finalizar
