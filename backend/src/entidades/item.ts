@@ -1,11 +1,18 @@
 import { normalizarTextoOpcional } from "../utils/validacoes";
-import { Column, Entity } from "typeorm";
-import { EntidadeBase } from "./entidade-base";
+import { EntidadeBase, type EstadoBase } from "./entidade-base";
 import { RequisicaoInvalidaErro } from "../erros/erros-http";
 
-@Entity({ name: "itens" })
+export interface EstadoItem {
+  codigo: string;
+  nome: string;
+  categoria: string;
+  quantidadeTotal: number;
+  descricao: string | null;
+  ativo: boolean;
+  imagem: string | null;
+}
+
 export class Item extends EntidadeBase {
-  @Column({ name: "codigo", type: "varchar", length: 50, unique: true })
   private _codigo!: string;
 
   get codigo(): string {
@@ -23,7 +30,6 @@ export class Item extends EntidadeBase {
     this._codigo = limpo;
   }
 
-  @Column({ name: "nome", type: "varchar", length: 150 })
   private _nome!: string;
 
   get nome(): string {
@@ -41,7 +47,6 @@ export class Item extends EntidadeBase {
     this._nome = limpo;
   }
 
-  @Column({ name: "categoria", type: "varchar", length: 80 })
   private _categoria!: string;
 
   get categoria(): string {
@@ -59,7 +64,6 @@ export class Item extends EntidadeBase {
     this._categoria = limpo;
   }
 
-  @Column({ name: "quantidade_total", type: "int", unsigned: true, default: 0 })
   private _quantidadeTotal: number = 0;
 
   get quantidadeTotal(): number {
@@ -73,7 +77,6 @@ export class Item extends EntidadeBase {
     this._quantidadeTotal = valor;
   }
 
-  @Column({ name: "descricao", type: "text", nullable: true })
   private _descricao: string | null = null;
 
   get descricao(): string | null {
@@ -84,7 +87,6 @@ export class Item extends EntidadeBase {
     this._descricao = normalizarTextoOpcional(valor, "A descrição", 2000);
   }
 
-  @Column({ name: "ativo", type: "boolean", default: true })
   private _ativo: boolean = true;
 
   get ativo(): boolean {
@@ -99,7 +101,6 @@ export class Item extends EntidadeBase {
     this._ativo = false;
   }
 
-  @Column({ name: "imagem", type: "varchar", length: 255, nullable: true })
   private _imagem: string | null = null;
 
   get imagem(): string | null {
@@ -123,5 +124,30 @@ export class Item extends EntidadeBase {
       this.categoria = dados.categoria;
       this.quantidadeTotal = dados.quantidadeTotal ?? 0;
     }
+  }
+
+  static restaurar(estado: EstadoItem & EstadoBase): Item {
+    const item = new Item();
+    item.restaurarBase(estado);
+    item._codigo = estado.codigo;
+    item._nome = estado.nome;
+    item._categoria = estado.categoria;
+    item._quantidadeTotal = estado.quantidadeTotal;
+    item._descricao = estado.descricao;
+    item._ativo = estado.ativo;
+    item._imagem = estado.imagem;
+    return item;
+  }
+
+  paraPersistencia(): EstadoItem {
+    return {
+      codigo: this._codigo,
+      nome: this._nome,
+      categoria: this._categoria,
+      quantidadeTotal: this._quantidadeTotal,
+      descricao: this._descricao,
+      ativo: this._ativo,
+      imagem: this._imagem,
+    };
   }
 }

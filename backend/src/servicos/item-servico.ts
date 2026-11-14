@@ -1,7 +1,8 @@
 import type { DadosItem } from "../dtos/item-dto";
 import { Item } from "../entidades/item";
 import { ConflitoErro, RecursoNaoEncontradoErro } from "../erros/erros-http";
-import type { ItemRepositorio } from "../repositorios/item-repositorio";
+import type { RepositorioDeItens } from "../repositorios/item-repositorio";
+import { codigoErroBanco } from "../utils/erros-banco";
 import { montarPagina, type Pagina, type ParametrosPaginacao } from "../utils/paginacao";
 
 export interface ItemPublico {
@@ -29,7 +30,7 @@ function paraPublico(item: Item): ItemPublico {
 }
 
 export class ItemServico {
-  constructor(private readonly itens: ItemRepositorio) {}
+  constructor(private readonly itens: RepositorioDeItens) {}
 
   async listar(paginacao: ParametrosPaginacao): Promise<Pagina<ItemPublico>> {
     const [itens, total] = await this.itens.listarPaginado(paginacao);
@@ -63,7 +64,7 @@ export class ItemServico {
     try {
       await this.itens.excluir(item);
     } catch (erro) {
-      const codigo = (erro as { driverError?: { code?: string } }).driverError?.code;
+      const codigo = codigoErroBanco(erro);
       if (codigo === "ER_ROW_IS_REFERENCED_2") {
         throw new ConflitoErro("Este item está em uso em planos ou eventos. Desative-o em vez de excluir.");
       }
