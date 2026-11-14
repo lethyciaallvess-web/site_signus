@@ -6,10 +6,13 @@ import { autenticar, exigirPerfil } from "../middlewares/autenticar";
 export function criarRotasUsuario(controlador: UsuarioControlador): Router {
   const rotas = Router();
 
-  rotas.post("/", controlador.cadastrar); 
+  rotas.post("/", controlador.cadastrar);
   rotas.get("/equipe", autenticar, exigirPerfil(PerfilUsuario.ADMIN), controlador.listarEquipe);
   rotas.post("/equipe", autenticar, exigirPerfil(PerfilUsuario.ADMIN), controlador.criarFuncionario);
   rotas.get("/me", autenticar, controlador.obterProprio);
+  rotas.get("/equipe/:id", autenticar, exigirPerfil(PerfilUsuario.ADMIN), controlador.obterFuncionario);
+  rotas.patch("/equipe/:id", autenticar, exigirPerfil(PerfilUsuario.ADMIN), controlador.atualizarFuncionario);
+  rotas.delete("/equipe/:id", autenticar, exigirPerfil(PerfilUsuario.ADMIN), controlador.excluirFuncionario);
   rotas.patch("/me", autenticar, controlador.atualizarProprio);
 
   return rotas;

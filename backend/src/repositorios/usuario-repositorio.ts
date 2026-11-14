@@ -22,6 +22,8 @@ export interface RepositorioDeUsuarios {
   salvarNovoCliente(usuario: Usuario): Promise<Usuario>;
   salvarNovo(usuario: Usuario): Promise<Usuario>;
   listarEquipe(paginacao: ParametrosPaginacao): Promise<[Usuario[], number]>;
+  buscarFuncionarioPorId(id: number): Promise<Usuario | null>;
+  excluir(id: number): Promise<void>;
 }
 
 export function usuarioDoRegistro(registro: UsuarioModelo): Usuario {
@@ -115,6 +117,17 @@ export class UsuarioRepositorio
       limit: limite,
     });
     return [rows.map(usuarioDoRegistro), count];
+  }
+
+  async buscarFuncionarioPorId(id: number): Promise<Usuario | null> {
+    const registro = await this.modelo.findOne({
+      where: { id, perfil: [PerfilUsuario.ADMIN, PerfilUsuario.OPERADOR] },
+    });
+    return registro ? usuarioDoRegistro(registro) : null;
+  }
+
+  async excluir(id: number): Promise<void> {
+    await this.modelo.destroy({ where: { id } });
   }
 
   async salvar(usuario: Usuario): Promise<Usuario> {

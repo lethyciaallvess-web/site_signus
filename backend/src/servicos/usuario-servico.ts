@@ -115,6 +115,35 @@ export class UsuarioServico {
     }
   }
 
+  async obterFuncionario(id: number): Promise<FuncionarioPublico> {
+    return paraFuncionario(await this.buscarFuncionarioOuFalhar(id));
+  }
+
+  async atualizarFuncionario(id: number, nome: string, email: string): Promise<FuncionarioPublico> {
+    const funcionario = await this.buscarFuncionarioOuFalhar(id);
+    funcionario.nome = nome;
+    funcionario.email = email;
+    try {
+      return paraFuncionario(await this.usuarios.salvar(funcionario));
+    } catch (erro) {
+      if (ehErroDeDuplicidade(erro)) {
+        throw new ConflitoErro("Já existe outro usuário com esse e-mail.");
+      }
+      throw erro;
+    }
+  }
+
+  async excluirFuncionario(id: number): Promise<void> {
+    await this.buscarFuncionarioOuFalhar(id);
+    await this.usuarios.excluir(id);
+  }
+
+  private async buscarFuncionarioOuFalhar(id: number): Promise<Usuario> {
+    const funcionario = await this.usuarios.buscarFuncionarioPorId(id);
+    if (!funcionario) throw new RecursoNaoEncontradoErro("Funcionário não encontrado.");
+    return funcionario;
+  }
+
   async obterPorId(id: number): Promise<UsuarioPublico> {
     return paraPublico(await this.buscarOuFalhar(id));
   }
