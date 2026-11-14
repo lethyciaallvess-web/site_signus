@@ -1,7 +1,5 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-require('reflect-metadata');
-const { DataSource } = require('typeorm');
 const { Cliente } = require('../dist/entidades/cliente');
 const { Evento } = require('../dist/entidades/evento');
 const { Item } = require('../dist/entidades/item');
@@ -41,18 +39,19 @@ for (const Entidade of [Item, Plano]) {
   });
 }
 
-test('Mapeamento preserva os nomes de coluna e a hidratação do TypeORM', async () => {
-  const fonte = new DataSource({ type: 'mysql', database: 'teste', entities: [Cliente, Evento, Item, Plano, Usuario] });
-  await fonte.buildMetadatas();
-  for (const [Entidade, campos] of [[Cliente, ['observacoes']], [Evento, ['observacoes']], [Plano, ['descricao', 'ativo']], [Item, ['descricao', 'ativo', 'imagem']]]) {
-    const metadata = fonte.getMetadata(Entidade);
+test('Mapeamento Sequelize preserva os nomes de coluna e a hidratação das entidades', () => {
+  Object.assign(process.env, { DB_HOST: process.env.DB_HOST || 'localhost', DB_USERNAME: process.env.DB_USERNAME || 'teste', DB_DATABASE: process.env.DB_DATABASE || 'teste', JWT_SECRET: process.env.JWT_SECRET || 'teste' });
+  const { ClienteModelo, EventoModelo, ItemModelo, PlanoModelo } = require('../dist/modelos');
+  const base = { id: 1, criadoEm: new Date(), atualizadoEm: new Date() };
+  for (const [Entidade, Modelo, campos] of [[Cliente, ClienteModelo, ['observacoes']], [Evento, EventoModelo, ['observacoes']], [Plano, PlanoModelo, ['descricao', 'ativo']], [Item, ItemModelo, ['descricao', 'ativo', 'imagem']]]) {
+    const original = new Entidade();
     for (const campo of campos) {
-      const colunas = metadata.columns.filter(c => c.databaseName === campo);
-      assert.equal(colunas.length, 1);
-      assert.equal(colunas[0].propertyName, '_' + campo);
-      const objeto = metadata.create();
-      colunas[0].setEntityValue(objeto, campo === 'ativo' ? false : 'do banco');
-      assert.equal(objeto[campo], campo === 'ativo' ? false : 'do banco');
+      assert.equal(Modelo.getAttributes()[campo].field, campo);
+      const valor = campo === 'ativo' ? false : 'do banco';
+      const estado = { ...original.paraPersistencia(), [campo]: valor };
+      const objeto = Entidade.restaurar({ ...base, ...estado });
+      assert.equal(objeto[campo], valor);
+      assert.equal(objeto.paraPersistencia()[campo], valor);
     }
   }
 });
