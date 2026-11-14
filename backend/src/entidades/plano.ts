@@ -1,12 +1,15 @@
 import { normalizarTextoOpcional } from "../utils/validacoes";
-import { Column, Entity } from "typeorm";
-import { EntidadeBase } from "./entidade-base";
+import { EntidadeBase, type EstadoBase } from "./entidade-base";
 import { RequisicaoInvalidaErro } from "../erros/erros-http";
-import { transformadorDecimal } from "../utils/transformador-decimal";
 
-@Entity({ name: "planos" })
+export interface EstadoPlano {
+  nome: string;
+  descricao: string | null;
+  valorBase: number | null;
+  ativo: boolean;
+}
+
 export class Plano extends EntidadeBase {
-  @Column({ name: "nome", type: "varchar", length: 80, unique: true })
   private _nome!: string;
 
   get nome(): string {
@@ -24,7 +27,6 @@ export class Plano extends EntidadeBase {
     this._nome = limpo;
   }
 
-  @Column({ name: "descricao", type: "text", nullable: true })
   private _descricao: string | null = null;
 
   get descricao(): string | null {
@@ -35,14 +37,6 @@ export class Plano extends EntidadeBase {
     this._descricao = normalizarTextoOpcional(valor, "A descrição", 2000);
   }
 
-  @Column({
-    name: "valor_base",
-    type: "decimal",
-    precision: 12,
-    scale: 2,
-    nullable: true,
-    transformer: transformadorDecimal,
-  })
   private _valorBase: number | null = null;
 
   get valorBase(): number | null {
@@ -56,7 +50,6 @@ export class Plano extends EntidadeBase {
     this._valorBase = valor;
   }
 
-  @Column({ name: "ativo", type: "boolean", default: true })
   private _ativo: boolean = true;
 
   get ativo(): boolean {
@@ -82,5 +75,24 @@ export class Plano extends EntidadeBase {
       this.descricao = dados.descricao ?? null;
       this.valorBase = dados.valorBase ?? null;
     }
+  }
+
+  static restaurar(estado: EstadoPlano & EstadoBase): Plano {
+    const plano = new Plano();
+    plano.restaurarBase(estado);
+    plano._nome = estado.nome;
+    plano._descricao = estado.descricao;
+    plano._valorBase = estado.valorBase;
+    plano._ativo = estado.ativo;
+    return plano;
+  }
+
+  paraPersistencia(): EstadoPlano {
+    return {
+      nome: this._nome,
+      descricao: this._descricao,
+      valorBase: this._valorBase,
+      ativo: this._ativo,
+    };
   }
 }

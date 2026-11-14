@@ -1,7 +1,8 @@
 import type { DadosPlano } from "../dtos/plano-dto";
 import { Plano } from "../entidades/plano";
 import { ConflitoErro, RecursoNaoEncontradoErro } from "../erros/erros-http";
-import type { LinhaItemPlano, PlanoRepositorio } from "../repositorios/plano-repositorio";
+import type { LinhaItemPlano, RepositorioDePlanos } from "../repositorios/plano-repositorio";
+import { codigoErroBanco } from "../utils/erros-banco";
 import { montarPagina, type Pagina, type ParametrosPaginacao } from "../utils/paginacao";
 
 export interface ItemPlanoPublico {
@@ -38,7 +39,7 @@ function paraPublico(plano: Plano, linhas: LinhaItemPlano[]): PlanoPublico {
 }
 
 export class PlanoServico {
-  constructor(private readonly planos: PlanoRepositorio) {}
+  constructor(private readonly planos: RepositorioDePlanos) {}
 
   async listar(paginacao: ParametrosPaginacao): Promise<Pagina<PlanoPublico>> {
     const [planos, total] = await this.planos.listarPaginado(paginacao);
@@ -72,7 +73,7 @@ export class PlanoServico {
     try {
       await this.planos.excluir(plano);
     } catch (erro) {
-      const codigo = (erro as { driverError?: { code?: string } }).driverError?.code;
+      const codigo = codigoErroBanco(erro);
       if (codigo === "ER_ROW_IS_REFERENCED_2") {
         throw new ConflitoErro("Este plano está em uso em eventos. Desative-o em vez de excluir.");
       }

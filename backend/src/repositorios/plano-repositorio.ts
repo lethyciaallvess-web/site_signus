@@ -1,5 +1,13 @@
+import { sequelize } from "../config/banco";
 import { Plano } from "../entidades/plano";
-import { RepositorioBase } from "./repositorio-base";
+import { ItemModelo, PlanoItemModelo, PlanoModelo } from "../modelos";
+import { decimalParaNumero } from "../utils/transformador-decimal";
+import {
+  lerEstadoBase,
+  RepositorioBase,
+  type RepositorioCrud,
+  type ValoresModelo,
+} from "./repositorio-base";
 
 export interface LinhaItemPlano {
   planoId: number;
@@ -10,55 +18,90 @@ export interface LinhaItemPlano {
   quantidade: number;
 }
 
-export class PlanoRepositorio extends RepositorioBase<Plano> {
-  protected readonly alias = "plano";
-  protected readonly ordenarPor = "_nome";
+export interface ItemDoPlanoParaSalvar {
+  itemId: number;
+  quantidade: number;
+}
+
+export interface RepositorioDePlanos extends RepositorioCrud<Plano> {
+  buscarPorNome(nome: string): Promise<Plano | null>;
+  listarItens(planoIds: number[]): Promise<LinhaItemPlano[]>;
+  contarItensExistentes(itemIds: number[]): Promise<number>;
+  salvarComItens(plano: Plano, itens: ItemDoPlanoParaSalvar[]): Promise<Plano>;
+}
+
+export function planoDoRegistro(registro: PlanoModelo): Plano {
+  return Plano.restaurar({
+    ...lerEstadoBase(registro),
+    nome: registro.nome,
+    descricao: registro.descricao,
+    valorBase: decimalParaNumero(registro.valorBase),
+    ativo: Boolean(registro.ativo),
+  });
+}
+
+export class PlanoRepositorio
+  extends RepositorioBase<Plano, PlanoModelo>
+  implements RepositorioDePlanos
+{
+  protected readonly ordenarPor = "nome";
+
+  constructor(modelo: typeof PlanoModelo = PlanoModelo) {
+    super(modelo);
+  }
+
+  protected paraEntidade(registro: PlanoModelo): Plano {
+    return planoDoRegistro(registro);
+  }
+
+  protected paraValores(plano: Plano): ValoresModelo<PlanoModelo> {
+    return { ...plano.paraPersistencia() };
+  }
 
   buscarPorNome(nome: string): Promise<Plano | null> {
-    return this.consultaBase().where("plano._nome = :nome", { nome }).getOne();
+    return this.buscarUm({ nome });
   }
 
   async listarItens(planoIds: number[]): Promise<LinhaItemPlano[]> {
     if (planoIds.length === 0) return [];
-    const linhas: Record<string, unknown>[] = await this.repositorio.query(
-      `SELECT pi.plano_id AS planoId, i.id AS itemId, i.codigo, i.nome, i.categoria, pi.quantidade
-         FROM plano_itens pi
-         JOIN itens i ON i.id = pi.itens_id
-        WHERE pi.plano_id IN (?)
-        ORDER BY i.nome`,
-      [planoIds],
+    const linhas = await PlanoItemModelo.findAll({
+      where: { planoId: planoIds },
+      include: [{ model: ItemModelo, as: "item", required: true }],
+      order: [[{ model: ItemModelo, as: "item" }, "nome", "ASC"]],
+    });
+    return linhas.flatMap(({ planoId, quantidade, item }) =>
+      item
+        ? [
+            {
+              planoId: Number(planoId),
+              itemId: Number(item.id),
+              codigo: item.codigo,
+              nome: item.nome,
+              categoria: item.categoria,
+              quantidade: Number(quantidade),
+            },
+          ]
+        : [],
     );
-    return linhas.map((l) => ({
-      planoId: Number(l.planoId),
-      itemId: Number(l.itemId),
-      codigo: String(l.codigo),
-      nome: String(l.nome),
-      categoria: String(l.categoria),
-      quantidade: Number(l.quantidade),
-    }));
   }
 
   async contarItensExistentes(itemIds: number[]): Promise<number> {
     if (itemIds.length === 0) return 0;
-    const [linha] = await this.repositorio.query(
-      "SELECT COUNT(*) AS total FROM itens WHERE id IN (?)",
-      [itemIds],
-    );
-    return Number(linha.total);
+    return ItemModelo.count({ where: { id: itemIds } });
   }
 
   /** Salva o plano e substitui a lista de itens dele numa única transação. */
   salvarComItens(
     plano: Plano,
-    itens: { itemId: number; quantidade: number }[],
+    itens: ItemDoPlanoParaSalvar[],
   ): Promise<Plano> {
-    return this.repositorio.manager.transaction(async (manager) => {
-      const salvo = await manager.save(plano);
-      await manager.query("DELETE FROM plano_itens WHERE plano_id = ?", [salvo.id]);
+    return sequelize.transaction(async (transaction) => {
+      const salvo = await this.salvar(plano, transaction);
+      await PlanoItemModelo.destroy({ where: { planoId: salvo.id }, transaction });
       for (const { itemId, quantidade } of itens) {
-        await manager.query(
-          "INSERT INTO plano_itens (plano_id, itens_id, quantidade) VALUES (?, ?, ?)",
-          [salvo.id, itemId, quantidade],
+        await PlanoItemModelo.create(
+          { planoId: salvo.id, itemId, quantidade },
+          { transaction },
         );
       }
       return salvo;
