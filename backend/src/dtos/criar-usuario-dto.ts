@@ -1,6 +1,7 @@
 import { RequisicaoInvalidaErro } from "../erros/erros-http";
 import {
   lerCorpo,
+  validarCnpjOpcional,
   validarCpf,
   validarEmail,
   validarNome,
@@ -11,6 +12,7 @@ export interface DadosCriarUsuario {
   nome: string;
   email: string;
   cpf: string;
+  cnpj: string | null;
   senha: string;
 }
 
@@ -22,6 +24,7 @@ export function validarDadosCriarUsuario(corpo: unknown): DadosCriarUsuario {
     nome: validarNome(bruto.nome, erros),
     email: validarEmail(bruto.email, erros),
     cpf: validarCpf(bruto.cpf, erros),
+    cnpj: validarCnpjOpcional(bruto.cnpj, erros),
     senha: validarSenha(bruto.senha, bruto.confirmacaoSenha, erros),
   };
 

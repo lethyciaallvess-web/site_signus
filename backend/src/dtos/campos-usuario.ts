@@ -1,3 +1,4 @@
+import { Cnpj } from "../dominio/cnpj";
 import { Cpf } from "../dominio/cpf";
 import { Senha } from "../dominio/senha";
 import { emailValido } from "../utils/validacoes";
@@ -38,6 +39,33 @@ export function validarCpf(valor: unknown, erros: string[]): string {
     erros.push("Informe um CPF válido.");
   }
   return cpf;
+}
+
+export function validarCnpj(valor: unknown, erros: string[]): string {
+  const cnpj = typeof valor === "string" ? Cnpj.somenteNumeros(valor) : "";
+  if (cnpj.length === 0) {
+    erros.push("O CNPJ é obrigatório.");
+  } else if (cnpj.length !== 14) {
+    erros.push("O CNPJ deve possuir 14 números.");
+  } else if (!Cnpj.ehValido(cnpj)) {
+    erros.push("Informe um CNPJ válido.");
+  }
+  return cnpj;
+}
+
+export function validarCnpjOpcional(valor: unknown, erros: string[]): string | null {
+  if (valor === undefined || valor === null || valor === "") return null;
+  return validarCnpj(valor, erros);
+}
+
+export function validarDocumento(valor: unknown, erros: string[]): string {
+  const numeros = typeof valor === "string" ? Cnpj.somenteNumeros(valor) : "";
+  if (numeros.length === 14) return validarCnpj(numeros, erros);
+  if (numeros.length === 0) {
+    erros.push("O CPF ou CNPJ é obrigatório.");
+    return numeros;
+  }
+  return validarCpf(numeros, erros);
 }
 
 export function validarSenha(

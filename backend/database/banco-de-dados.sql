@@ -19,7 +19,7 @@ DROP TABLE IF EXISTS `clientes`;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `clientes` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `tipo_pessoa` enum('FISICA') NOT NULL DEFAULT 'FISICA',
+  `tipo_pessoa` enum('FISICA','JURIDICA') NOT NULL DEFAULT 'FISICA',
   `nome` varchar(180) NOT NULL,
   `documento` varchar(14) NOT NULL,
   `email` varchar(255) NOT NULL,
@@ -234,6 +234,7 @@ CREATE TABLE `usuarios` (
   `nome` varchar(150) NOT NULL,
   `email` varchar(255) NOT NULL,
   `cpf` char(11) NOT NULL,
+  `cnpj` char(14) DEFAULT NULL,
   `senha_hash` varchar(255) NOT NULL,
   `perfil` enum('ADMIN','OPERADOR','CLIENTE') NOT NULL DEFAULT 'CLIENTE',
   `cliente_id` bigint(20) unsigned DEFAULT NULL,
@@ -242,6 +243,7 @@ CREATE TABLE `usuarios` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_usuarios_email` (`email`),
   UNIQUE KEY `uk_usuarios_cpf` (`cpf`),
+  UNIQUE KEY `uk_usuarios_cnpj` (`cnpj`),
   UNIQUE KEY `uk_usuarios_cliente` (`cliente_id`),
   CONSTRAINT `fk_usuarios_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
