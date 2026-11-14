@@ -1,7 +1,25 @@
-import type { SelectQueryBuilder } from "typeorm";
-import { Evento } from "../entidades/evento";
-import { Usuario } from "../entidades/usuario";
-import { RepositorioBase } from "./repositorio-base";
+import { type Includeable, Op, type WhereOptions } from "sequelize";
+import { sequelize } from "../config/banco";
+import { Evento, type StatusEvento } from "../entidades/evento";
+import type { Usuario } from "../entidades/usuario";
+import {
+  ClienteModelo,
+  EventoItemModelo,
+  EventoModelo,
+  ItemModelo,
+  PlanoModelo,
+  UsuarioModelo,
+} from "../modelos";
+import { decimalParaNumero } from "../utils/transformador-decimal";
+import { clienteDoRegistro } from "./cliente-repositorio";
+import { planoDoRegistro } from "./plano-repositorio";
+import {
+  lerEstadoBase,
+  RepositorioBase,
+  type RepositorioCrud,
+  type ValoresModelo,
+} from "./repositorio-base";
+import { usuarioDoRegistro } from "./usuario-repositorio";
 
 export interface LinhaItemEvento {
   eventoId: number;
@@ -17,61 +35,141 @@ export interface ItemExtra {
   quantidade: number;
 }
 
-export class EventoRepositorio extends RepositorioBase<Evento> {
-  protected readonly alias = "evento";
-  protected readonly ordenarPor = "_dataInicio";
+export interface EventoDoCliente {
+  id: number;
+  nome: string;
+  dataInicio: Date;
+  dataFim: Date;
+  localEvento: string;
+  status: StatusEvento;
+  valor: number | null;
+  plano: string | null;
+}
+
+export interface RepositorioDeEventos extends RepositorioCrud<Evento> {
+  buscarUsuario(id: number): Promise<Usuario | null>;
+  contarItensExistentes(itemIds: number[]): Promise<number>;
+  listarItensExtras(eventoIds: number[]): Promise<LinhaItemEvento[]>;
+  listarDoCliente(clienteId: number): Promise<EventoDoCliente[]>;
+  salvarComItens(evento: Evento, itens: ItemExtra[]): Promise<Evento>;
+}
+
+export class EventoRepositorio
+  extends RepositorioBase<Evento, EventoModelo>
+  implements RepositorioDeEventos {
+  protected readonly ordenarPor = "dataInicio";
   protected readonly direcao = "DESC";
 
-  /** Toda consulta de evento já traz o cliente e o plano vinculados. */
-  protected override consultaBase(): SelectQueryBuilder<Evento> {
-    return super
-      .consultaBase()
-      .leftJoinAndSelect("evento.cliente", "cliente")
-      .leftJoinAndSelect("evento.plano", "plano");
+  constructor(modelo: typeof EventoModelo = EventoModelo) {
+    super(modelo);
   }
 
-  buscarUsuario(id: number): Promise<Usuario | null> {
-    return this.repositorio.manager.getRepository(Usuario).findOneBy({ id });
+  protected override inclusoes(): Includeable[] {
+    return [
+      { model: ClienteModelo, as: "cliente", required: false },
+      { model: PlanoModelo, as: "plano", required: false },
+    ];
+  }
+
+  protected override filtroBusca(termo: string): WhereOptions<EventoModelo> {
+    return {
+      [Op.or]: [
+        { nome: { [Op.like]: `%${termo}%` } },
+        { localEvento: { [Op.like]: `%${termo}%` } },
+        { "$cliente.nome$": { [Op.like]: `%${termo}%` } },
+      ],
+    };
+  }
+
+  protected paraEntidade(registro: EventoModelo): Evento {
+    return Evento.restaurar(
+      {
+        ...lerEstadoBase(registro),
+        clienteId: Number(registro.clienteId),
+        planoId: registro.planoId === null ? null : Number(registro.planoId),
+        criadoPorUsuarioId: Number(registro.criadoPorUsuarioId),
+        nome: registro.nome,
+        dataInicio: registro.dataInicio,
+        dataFim: registro.dataFim,
+        localEvento: registro.localEvento,
+        status: registro.status,
+        valorNegociado: decimalParaNumero(registro.valorNegociado),
+        observacoes: registro.observacoes,
+      },
+      {
+        cliente: registro.cliente ? clienteDoRegistro(registro.cliente) : undefined,
+        plano: registro.plano ? planoDoRegistro(registro.plano) : null,
+      },
+    );
+  }
+
+  protected paraValores(evento: Evento): ValoresModelo<EventoModelo> {
+    return { ...evento.paraPersistencia() };
+  }
+
+  async buscarUsuario(id: number): Promise<Usuario | null> {
+    const registro = await UsuarioModelo.findByPk(id);
+    return registro ? usuarioDoRegistro(registro) : null;
   }
 
   async contarItensExistentes(itemIds: number[]): Promise<number> {
     if (itemIds.length === 0) return 0;
-    const [linha] = await this.repositorio.query(
-      "SELECT COUNT(*) AS total FROM itens WHERE id IN (?)",
-      [itemIds],
-    );
-    return Number(linha.total);
+    return ItemModelo.count({ where: { id: itemIds } });
   }
 
   async listarItensExtras(eventoIds: number[]): Promise<LinhaItemEvento[]> {
     if (eventoIds.length === 0) return [];
-    const linhas: Record<string, unknown>[] = await this.repositorio.query(
-      `SELECT ei.evento_id AS eventoId, i.id AS itemId, i.codigo, i.nome, i.categoria, ei.quantidade
-         FROM evento_itens ei
-         JOIN itens i ON i.id = ei.itens_id
-        WHERE ei.evento_id IN (?)
-        ORDER BY i.nome`,
-      [eventoIds],
+    const linhas = await EventoItemModelo.findAll({
+      where: { eventoId: eventoIds },
+      include: [{ model: ItemModelo, as: "item", required: true }],
+      order: [[{ model: ItemModelo, as: "item" }, "nome", "ASC"]],
+    });
+    return linhas.flatMap(({ eventoId, quantidade, item }) =>
+      item
+        ? [
+          {
+            eventoId: Number(eventoId),
+            itemId: Number(item.id),
+            codigo: item.codigo,
+            nome: item.nome,
+            categoria: item.categoria,
+            quantidade: Number(quantidade),
+          },
+        ]
+        : [],
     );
-    return linhas.map((l) => ({
-      eventoId: Number(l.eventoId),
-      itemId: Number(l.itemId),
-      codigo: String(l.codigo),
-      nome: String(l.nome),
-      categoria: String(l.categoria),
-      quantidade: Number(l.quantidade),
+  }
+
+  async listarDoCliente(clienteId: number): Promise<EventoDoCliente[]> {
+    const registros = await EventoModelo.findAll({
+      where: { clienteId },
+      include: [{ model: PlanoModelo, as: "plano", required: false, attributes: ["nome"] }],
+      order: [
+        ["dataInicio", "DESC"],
+        ["id", "DESC"],
+      ],
+    });
+    return registros.map((e) => ({
+      id: Number(e.id),
+      nome: e.nome,
+      dataInicio: e.dataInicio,
+      dataFim: e.dataFim,
+      localEvento: e.localEvento,
+      status: e.status,
+      valor: decimalParaNumero(e.valorNegociado),
+      plano: e.plano ? e.plano.nome : null,
     }));
   }
 
   /** Salva o evento e substitui os itens extras numa única transação. */
   salvarComItens(evento: Evento, itens: ItemExtra[]): Promise<Evento> {
-    return this.repositorio.manager.transaction(async (manager) => {
-      const salvo = await manager.save(evento);
-      await manager.query("DELETE FROM evento_itens WHERE evento_id = ?", [salvo.id]);
+    return sequelize.transaction(async (transaction) => {
+      const salvo = await this.salvar(evento, transaction);
+      await EventoItemModelo.destroy({ where: { eventoId: salvo.id }, transaction });
       for (const { itemId, quantidade } of itens) {
-        await manager.query(
-          "INSERT INTO evento_itens (evento_id, itens_id, quantidade) VALUES (?, ?, ?)",
-          [salvo.id, itemId, quantidade],
+        await EventoItemModelo.create(
+          { eventoId: salvo.id, itemId, quantidade },
+          { transaction },
         );
       }
       return salvo;

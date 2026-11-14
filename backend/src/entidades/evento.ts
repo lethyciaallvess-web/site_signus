@@ -1,11 +1,9 @@
 import { normalizarTextoOpcional } from "../utils/validacoes";
-import { Column, Entity, JoinColumn, ManyToOne } from "typeorm";
-import { EntidadeBase } from "./entidade-base";
+import { EntidadeBase, type EstadoBase } from "./entidade-base";
 import { RequisicaoInvalidaErro } from "../erros/erros-http";
 import { Cliente } from "./cliente";
 import { Plano } from "./plano";
 import { Usuario } from "./usuario";
-import { transformadorDecimal } from "../utils/transformador-decimal";
 
 export enum StatusEvento {
   ORCAMENTO = "ORCAMENTO",
@@ -15,7 +13,19 @@ export enum StatusEvento {
   CANCELADO = "CANCELADO",
 }
 
-@Entity({ name: "eventos" })
+export interface EstadoEvento {
+  clienteId: number;
+  planoId: number | null;
+  criadoPorUsuarioId: number;
+  nome: string;
+  dataInicio: Date;
+  dataFim: Date;
+  localEvento: string;
+  status: StatusEvento;
+  valorNegociado: number | null;
+  observacoes: string | null;
+}
+
 export class Evento extends EntidadeBase {
   private static readonly TRANSICOES: Record<StatusEvento, readonly StatusEvento[]> = {
     [StatusEvento.ORCAMENTO]: [StatusEvento.CONFIRMADO, StatusEvento.CANCELADO],
@@ -25,28 +35,50 @@ export class Evento extends EntidadeBase {
     [StatusEvento.CANCELADO]: [],
   };
 
-  @Column({ name: "cliente_id", type: "bigint", unsigned: true })
-  readonly clienteId!: number;
+  private _clienteId!: number;
 
-  @ManyToOne(() => Cliente, { onUpdate: "CASCADE" })
-  @JoinColumn({ name: "cliente_id" })
-  cliente!: Cliente;
+  get clienteId(): number {
+    return Number(this._clienteId);
+  }
 
-  @Column({ name: "plano_id", type: "bigint", unsigned: true, nullable: true })
-  readonly planoId: number | null = null;
+  private _cliente: Cliente | null = null;
 
-  @ManyToOne(() => Plano, { nullable: true, onUpdate: "CASCADE" })
-  @JoinColumn({ name: "plano_id" })
-  plano: Plano | null = null;
+  get cliente(): Cliente | null {
+    return this._cliente;
+  }
 
-  @Column({ name: "criado_por_usuario_id", type: "bigint", unsigned: true })
-  readonly criadoPorUsuarioId!: number;
+  private _planoId: number | null = null;
 
-  @ManyToOne(() => Usuario, { onUpdate: "CASCADE" })
-  @JoinColumn({ name: "criado_por_usuario_id" })
-  criadoPor!: Usuario;
+  get planoId(): number | null {
+    return this._planoId === null ? null : Number(this._planoId);
+  }
 
-  @Column({ name: "nome", type: "varchar", length: 180 })
+  /** Troca o cliente e o plano mantendo a chave estrangeira e a relação sincronizadas. */
+  vincular(cliente: Cliente, plano: Plano | null): void {
+    this._cliente = cliente;
+    this._clienteId = cliente.id;
+    this._plano = plano;
+    this._planoId = plano?.id ?? null;
+  }
+
+  private _plano: Plano | null = null;
+
+  get plano(): Plano | null {
+    return this._plano;
+  }
+
+  private _criadoPorUsuarioId!: number;
+
+  get criadoPorUsuarioId(): number {
+    return this._criadoPorUsuarioId;
+  }
+
+  private _criadoPor: Usuario | null = null;
+
+  get criadoPor(): Usuario | null {
+    return this._criadoPor;
+  }
+
   private _nome!: string;
 
   get nome(): string {
@@ -64,10 +96,8 @@ export class Evento extends EntidadeBase {
     this._nome = limpo;
   }
 
-  @Column({ name: "data_inicio", type: "datetime" })
   private _dataInicio!: Date;
 
-  @Column({ name: "data_fim", type: "datetime" })
   private _dataFim!: Date;
 
   get dataInicio(): Date {
@@ -88,7 +118,6 @@ export class Evento extends EntidadeBase {
     this._dataFim = new Date(fim.getTime());
   }
 
-  @Column({ name: "local_evento", type: "varchar", length: 255 })
   private _localEvento!: string;
 
   get localEvento(): string {
@@ -106,7 +135,6 @@ export class Evento extends EntidadeBase {
     this._localEvento = limpo;
   }
 
-  @Column({ name: "status", type: "enum", enum: StatusEvento, default: StatusEvento.ORCAMENTO })
   private _status: StatusEvento = StatusEvento.ORCAMENTO;
 
   get status(): StatusEvento {
@@ -123,14 +151,6 @@ export class Evento extends EntidadeBase {
     this._status = valor;
   }
 
-  @Column({
-    name: "valor_negociado",
-    type: "decimal",
-    precision: 12,
-    scale: 2,
-    nullable: true,
-    transformer: transformadorDecimal,
-  })
   private _valorNegociado: number | null = null;
 
   get valorNegociado(): number | null {
@@ -144,7 +164,6 @@ export class Evento extends EntidadeBase {
     this._valorNegociado = valor;
   }
 
-  @Column({ name: "observacoes", type: "text", nullable: true })
   private _observacoes: string | null = null;
 
   get observacoes(): string | null {
@@ -166,15 +185,48 @@ export class Evento extends EntidadeBase {
   }) {
     super();
     if (dados !== undefined) {
-      this.cliente = dados.cliente;
-      this.clienteId = dados.cliente.id;
-      this.criadoPor = dados.criadoPor;
-      this.criadoPorUsuarioId = dados.criadoPor.id;
-      this.plano = dados.plano ?? null;
-      this.planoId = dados.plano?.id ?? null;
+      this.vincular(dados.cliente, dados.plano ?? null);
+      this._criadoPor = dados.criadoPor;
+      this._criadoPorUsuarioId = dados.criadoPor.id;
       this.nome = dados.nome;
       this.definirPeriodo(dados.inicio, dados.fim);
       this.localEvento = dados.localEvento;
     }
+  }
+
+  static restaurar(
+    estado: EstadoEvento & EstadoBase,
+    vinculos: { cliente?: Cliente; plano?: Plano | null } = {},
+  ): Evento {
+    const evento = new Evento();
+    evento.restaurarBase(estado);
+    evento._criadoPorUsuarioId = estado.criadoPorUsuarioId;
+    evento._clienteId = estado.clienteId;
+    evento._planoId = estado.planoId;
+    evento._cliente = vinculos.cliente ?? null;
+    evento._plano = vinculos.plano ?? null;
+    evento._nome = estado.nome;
+    evento._dataInicio = estado.dataInicio;
+    evento._dataFim = estado.dataFim;
+    evento._localEvento = estado.localEvento;
+    evento._status = estado.status;
+    evento._valorNegociado = estado.valorNegociado;
+    evento._observacoes = estado.observacoes;
+    return evento;
+  }
+
+  paraPersistencia(): EstadoEvento {
+    return {
+      clienteId: this._clienteId,
+      planoId: this._planoId,
+      criadoPorUsuarioId: this._criadoPorUsuarioId,
+      nome: this._nome,
+      dataInicio: this._dataInicio,
+      dataFim: this._dataFim,
+      localEvento: this._localEvento,
+      status: this._status,
+      valorNegociado: this._valorNegociado,
+      observacoes: this._observacoes,
+    };
   }
 }

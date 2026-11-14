@@ -3,9 +3,9 @@ import type { Cliente } from "../entidades/cliente";
 import { Evento, type StatusEvento } from "../entidades/evento";
 import type { Plano } from "../entidades/plano";
 import { NaoAutenticadoErro, RecursoNaoEncontradoErro } from "../erros/erros-http";
-import type { ClienteRepositorio } from "../repositorios/cliente-repositorio";
-import type { EventoRepositorio, LinhaItemEvento } from "../repositorios/evento-repositorio";
-import type { PlanoRepositorio } from "../repositorios/plano-repositorio";
+import type { RepositorioDeClientes } from "../repositorios/cliente-repositorio";
+import type { LinhaItemEvento, RepositorioDeEventos } from "../repositorios/evento-repositorio";
+import type { RepositorioDePlanos } from "../repositorios/plano-repositorio";
 import { montarPagina, type Pagina, type ParametrosPaginacao } from "../utils/paginacao";
 
 export interface EventoPublico {
@@ -49,9 +49,9 @@ function paraPublico(evento: Evento, linhas: LinhaItemEvento[]): EventoPublico {
 
 export class EventoServico {
   constructor(
-    private readonly eventos: EventoRepositorio,
-    private readonly clientes: ClienteRepositorio,
-    private readonly planos: PlanoRepositorio,
+    private readonly eventos: RepositorioDeEventos,
+    private readonly clientes: RepositorioDeClientes,
+    private readonly planos: RepositorioDePlanos,
   ) {}
 
   async listar(paginacao: ParametrosPaginacao): Promise<Pagina<EventoPublico>> {
