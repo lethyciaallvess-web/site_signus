@@ -1,5 +1,6 @@
+import { TipoPessoa } from "../entidades/cliente";
 import { RequisicaoInvalidaErro } from "../erros/erros-http";
-import { lerCorpo, validarCpf, validarEmail } from "./campos-usuario";
+import { lerCorpo, validarDocumento, validarEmail } from "./campos-usuario";
 
 export interface DadosCliente {
   nome: string;
@@ -20,11 +21,20 @@ export function validarDadosCliente(corpo: unknown): DadosCliente {
 
   const dados: DadosCliente = {
     nome,
-    documento: validarCpf(bruto.documento, erros),
+    documento: validarDocumento(bruto.documento, erros),
     email: validarEmail(bruto.email, erros),
     telefone,
     observacoes: typeof bruto.observacoes === "string" ? bruto.observacoes : null,
   };
+
+  if (bruto.tipoPessoa !== undefined) {
+    const esperado = dados.documento.length === 14 ? TipoPessoa.JURIDICA : TipoPessoa.FISICA;
+    if (!Object.values(TipoPessoa).includes(bruto.tipoPessoa as TipoPessoa)) {
+      erros.push("Tipo de pessoa inválido.");
+    } else if (bruto.tipoPessoa !== esperado) {
+      erros.push("Pessoa física usa CPF e pessoa jurídica usa CNPJ.");
+    }
+  }
 
   if (erros.length > 0) {
     throw new RequisicaoInvalidaErro("Dados do cliente inválidos.", erros);

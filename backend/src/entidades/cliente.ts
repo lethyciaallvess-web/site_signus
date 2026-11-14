@@ -1,21 +1,24 @@
-import { Column, Entity } from "typeorm";
-import { EntidadeBase } from "./entidade-base";
+import { EntidadeBase, type EstadoBase } from "./entidade-base";
 import { RequisicaoInvalidaErro } from "../erros/erros-http";
 import { emailValido, normalizarTextoOpcional } from "../utils/validacoes";
 import { Cpf } from "../dominio/cpf";
+import { Cnpj } from "../dominio/cnpj";
 
 export enum TipoPessoa {
   FISICA = "FISICA",
+  JURIDICA = "JURIDICA",
 }
 
-@Entity({ name: "clientes" })
+export interface EstadoCliente {
+  tipoPessoa: TipoPessoa;
+  nome: string;
+  documento: string;
+  email: string;
+  telefone: string;
+  observacoes: string | null;
+}
+
 export class Cliente extends EntidadeBase {
-  @Column({
-    name: "tipo_pessoa",
-    type: "enum",
-    enum: TipoPessoa,
-    default: TipoPessoa.FISICA,
-  })
   private _tipoPessoa: TipoPessoa = TipoPessoa.FISICA;
 
   get tipoPessoa(): TipoPessoa {
@@ -23,7 +26,6 @@ export class Cliente extends EntidadeBase {
   }
 
 
-  @Column({ name: "nome", type: "varchar", length: 180 })
   private _nome!: string;
 
   get nome(): string {
@@ -42,7 +44,6 @@ export class Cliente extends EntidadeBase {
     this._nome = limpo;
   }
 
-  @Column({ name: "documento", type: "varchar", length: 14, unique: true })
   private _documento!: string;
 
   get documento(): string {
@@ -50,10 +51,18 @@ export class Cliente extends EntidadeBase {
   }
 
   set documento(valor: string) {
+    if (typeof valor !== "string") {
+      throw new RequisicaoInvalidaErro("O documento deve ser um texto.");
+    }
+    if (Cnpj.somenteNumeros(valor).length === 14) {
+      this._documento = new Cnpj(valor).numeros;
+      this._tipoPessoa = TipoPessoa.JURIDICA;
+      return;
+    }
     this._documento = new Cpf(valor).numeros;
+    this._tipoPessoa = TipoPessoa.FISICA;
   }
 
-  @Column({ name: "email", type: "varchar", length: 255 })
   private _email!: string;
 
   get email(): string {
@@ -70,7 +79,6 @@ export class Cliente extends EntidadeBase {
     this._email = limpo;
   }
 
-  @Column({ name: "telefone", type: "varchar", length: 20 })
   private _telefone: string = "";
 
   get telefone(): string {
@@ -89,7 +97,6 @@ export class Cliente extends EntidadeBase {
     this._telefone = limpo;
   }
 
-  @Column({ name: "observacoes", type: "text", nullable: true })
   private _observacoes: string | null = null;
 
   get observacoes(): string | null {
@@ -100,12 +107,35 @@ export class Cliente extends EntidadeBase {
     this._observacoes = normalizarTextoOpcional(valor, "As observações", 2000);
   }
 
-  constructor(dados?: { nome: string; email: string; cpf: string }) {
+  constructor(dados?: { nome: string; email: string; documento: string }) {
     super();
     if (dados !== undefined) {
       this.nome = dados.nome;
       this.email = dados.email;
-      this.documento = dados.cpf;
+      this.documento = dados.documento;
     }
+  }
+
+  static restaurar(estado: EstadoCliente & EstadoBase): Cliente {
+    const cliente = new Cliente();
+    cliente.restaurarBase(estado);
+    cliente._tipoPessoa = estado.tipoPessoa;
+    cliente._nome = estado.nome;
+    cliente._documento = estado.documento;
+    cliente._email = estado.email;
+    cliente._telefone = estado.telefone;
+    cliente._observacoes = estado.observacoes;
+    return cliente;
+  }
+
+  paraPersistencia(): EstadoCliente {
+    return {
+      tipoPessoa: this._tipoPessoa,
+      nome: this._nome,
+      documento: this._documento,
+      email: this._email,
+      telefone: this._telefone,
+      observacoes: this._observacoes,
+    };
   }
 }

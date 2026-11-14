@@ -1,11 +1,13 @@
 import type { DadosCliente } from "../dtos/cliente-dto";
-import { Cliente } from "../entidades/cliente";
+import { Cliente, type TipoPessoa } from "../entidades/cliente";
 import { ConflitoErro, RecursoNaoEncontradoErro } from "../erros/erros-http";
-import type { ClienteRepositorio } from "../repositorios/cliente-repositorio";
+import type { RepositorioDeClientes } from "../repositorios/cliente-repositorio";
+import { codigoErroBanco } from "../utils/erros-banco";
 import { montarPagina, type Pagina, type ParametrosPaginacao } from "../utils/paginacao";
 
 export interface ClientePublico {
   id: number;
+  tipoPessoa: TipoPessoa;
   nome: string;
   documento: string;
   email: string;
@@ -16,6 +18,7 @@ export interface ClientePublico {
 function paraPublico(cliente: Cliente): ClientePublico {
   return {
     id: Number(cliente.id),
+    tipoPessoa: cliente.tipoPessoa,
     nome: cliente.nome,
     documento: cliente.documento,
     email: cliente.email,
@@ -25,7 +28,7 @@ function paraPublico(cliente: Cliente): ClientePublico {
 }
 
 export class ClienteServico {
-  constructor(private readonly clientes: ClienteRepositorio) {}
+  constructor(private readonly clientes: RepositorioDeClientes) {}
 
   async listar(paginacao: ParametrosPaginacao): Promise<Pagina<ClientePublico>> {
     const [clientes, total] = await this.clientes.listarPaginado(paginacao);
@@ -38,7 +41,7 @@ export class ClienteServico {
 
   async criar(dados: DadosCliente): Promise<ClientePublico> {
     await this.garantirDocumentoLivre(dados.documento);
-    const cliente = new Cliente({ nome: dados.nome, email: dados.email, cpf: dados.documento });
+    const cliente = new Cliente({ nome: dados.nome, email: dados.email, documento: dados.documento });
     this.aplicarContato(cliente, dados);
     return paraPublico(await this.clientes.salvar(cliente));
   }
@@ -58,10 +61,10 @@ export class ClienteServico {
     try {
       await this.clientes.excluir(cliente);
     } catch (erro) {
-      const codigo = (erro as { driverError?: { code?: string } }).driverError?.code;
+      const codigo = codigoErroBanco(erro);
       if (codigo === "ER_ROW_IS_REFERENCED_2") {
         throw new ConflitoErro(
-          "Este cliente possui eventos ou acesso vinculado e não pode ser excluído.",
+          "Este cliente possui eventos vinculados e não pode ser excluído.",
         );
       }
       throw erro;
@@ -76,7 +79,7 @@ export class ClienteServico {
   private async garantirDocumentoLivre(documento: string, idAtual?: number): Promise<void> {
     const existente = await this.clientes.buscarPorDocumento(documento);
     if (existente && Number(existente.id) !== idAtual) {
-      throw new ConflitoErro("Já existe um cliente com esse CPF.");
+      throw new ConflitoErro("Já existe um cliente com esse CPF ou CNPJ.");
     }
   }
 

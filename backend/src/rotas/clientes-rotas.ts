@@ -1,10 +1,12 @@
 import { Router } from "express";
 import type { ClienteControlador } from "../controladores/cliente-controlador";
-import { autenticar } from "../middlewares/autenticar";
+import { PerfilUsuario } from "../entidades/usuario";
+import { autenticar, exigirPerfil } from "../middlewares/autenticar";
 
 export function criarRotasClientes(controlador: ClienteControlador): Router {
   const rotas = Router();
   rotas.use(autenticar);
+  rotas.use(exigirPerfil(PerfilUsuario.ADMIN, PerfilUsuario.OPERADOR));
 
   rotas.get("/", controlador.listar);
   rotas.get("/:id", controlador.obter);
