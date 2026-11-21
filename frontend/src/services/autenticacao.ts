@@ -16,6 +16,7 @@ export async function cadastrar(dados: {
   nome: string;
   email: string;
   cpf: string;
+  cnpj?: string;
   senha: string;
   confirmacaoSenha: string;
 }) {
@@ -52,22 +53,23 @@ export function obterUsuario(): Usuario | null {
   }
 }
 
+export type UsuarioCompleto = Usuario & { cpf: string; cnpj: string | null };
+
+export async function obterPerfil(): Promise<UsuarioCompleto> {
+  const resposta = await api.get<UsuarioCompleto>("/usuarios/me");
+  return resposta.data;
+}
+
 export type DadosEdicao = {
   nome: string;
   cpf: string;
+  cnpj: string | null;
   senha: string;
   confirmacaoSenha: string;
   senhaAtual: string;
 };
 
 export async function atualizarPerfil(dados: DadosEdicao): Promise<Usuario> {
-  const resposta = await api.patch<Usuario>("/usuarios/me", dados);
-  return resposta.data;
-}
-
-export async function atualizarPerfilParcial(
-  dados: Partial<DadosEdicao>
-): Promise<Usuario> {
   const resposta = await api.patch<Usuario>("/usuarios/me", dados);
   return resposta.data;
 }

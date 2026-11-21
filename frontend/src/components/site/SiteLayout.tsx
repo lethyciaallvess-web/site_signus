@@ -63,7 +63,7 @@ export function SiteLayout() {
 
             <footer className="site-rodape">
                 <strong>Signus Som e Luz</strong>
-                <p>Desenvolvido por Camila Watanabe e Lethycia Alves</p>
+                <p>Desenvolvido por Camila Watanabe e Lethycia Alves.</p>
             </footer>
         </div>
     );

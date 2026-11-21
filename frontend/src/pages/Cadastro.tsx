@@ -9,7 +9,7 @@ import {
     somenteNumeros,
     REGEX_SENHA,
 } from "../utils/validacoes";
-import { mascararCpfOuCnpj, mascararNome } from "../utils/mascaras";
+import { mascararCnpj, mascararCpf, mascararNome } from "../utils/mascaras";
 import { Input } from "../components/Input";
 import { cadastrar } from "../services/autenticacao";
 import { ApiError } from "../services/api";
@@ -21,6 +21,7 @@ interface Erros {
     nome?: string;
     email?: string;
     documento?: string;
+    cnpj?: string;
     senha?: string;
     confirmarSenha?: string;
 }
@@ -30,6 +31,7 @@ export function Cadastro() {
     const [nome, setNome] = useState("");
     const [email, setEmail] = useState("");
     const [documento, setDocumento] = useState("");
+    const [cnpj, setCnpj] = useState("");
     const [senha, setSenha] = useState("");
     const [confirmarSenha, setConfirmarSenha] = useState("");
     const [erros, setErros] = useState<Erros>({});
@@ -59,13 +61,13 @@ export function Cadastro() {
         const numerosDocumento = somenteNumeros(documento);
 
         if (documento === "") {
-            novosErros.documento = "Informe o CPF ou CNPJ.";
-        } else if (numerosDocumento.length <= 11) {
-            if (!validarCpf(documento)) {
-                novosErros.documento = "CPF inválido.";
-            }
-        } else if (!validarCnpj(documento)) {
-            novosErros.documento = "CNPJ inválido.";
+            novosErros.documento = "Informe o CPF.";
+        } else if (!validarCpf(documento)) {
+            novosErros.documento = "CPF inválido.";
+        }
+
+        if (cnpj !== "" && !validarCnpj(cnpj)) {
+            novosErros.cnpj = "CNPJ inválido.";
         }
 
         if (senha === "") {
@@ -95,6 +97,7 @@ export function Cadastro() {
                 nome,
                 email,
                 cpf: numerosDocumento,
+                cnpj: cnpj === "" ? undefined : somenteNumeros(cnpj),
                 senha,
                 confirmacaoSenha: confirmarSenha,
             });
@@ -124,7 +127,7 @@ export function Cadastro() {
                 <h1 className="auth-title">Primeiro acesso</h1>
 
                 <p className="auth-aviso">
-                    Use o mesmo CPF ou CNPJ e e-mail informados no seu orçamento. O acesso é
+                    Use o mesmo CPF (ou CNPJ, se o orçamento foi feito pela empresa) e e-mail informados no seu orçamento. O acesso é
                     liberado apenas para clientes da Signus.
                 </p>
 
@@ -152,13 +155,23 @@ export function Cadastro() {
 
                     <Input
                         type="text"
-                        placeholder="CPF ou CNPJ"
+                        placeholder="CPF"
                         obrigatorio
-                        maxLength={18}
+                        maxLength={14}
                         inputMode="numeric"
                         value={documento}
-                        onChange={(event) => setDocumento(mascararCpfOuCnpj(event.target.value))}
+                        onChange={(event) => setDocumento(mascararCpf(event.target.value))}
                         erro={erros.documento}
+                    />
+
+                    <Input
+                        type="text"
+                        placeholder="CNPJ (somente se for empresa)"
+                        maxLength={18}
+                        inputMode="numeric"
+                        value={cnpj}
+                        onChange={(event) => setCnpj(mascararCnpj(event.target.value))}
+                        erro={erros.cnpj}
                     />
 
                     <Input

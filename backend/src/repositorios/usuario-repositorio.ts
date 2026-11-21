@@ -1,10 +1,8 @@
 import type { Transaction } from "sequelize";
 import { sequelize } from "../config/banco";
-import { Cliente } from "../entidades/cliente";
 import { ConflitoErro, RecursoNaoEncontradoErro, RequisicaoInvalidaErro } from "../erros/erros-http";
 import { PerfilUsuario, Usuario } from "../entidades/usuario";
 import { ClienteModelo, UsuarioModelo } from "../modelos";
-import { valoresDoCliente } from "./cliente-repositorio";
 import type { ParametrosPaginacao } from "../utils/paginacao";
 import { lerEstadoBase } from "./repositorio-base";
 
@@ -76,17 +74,27 @@ export class UsuarioRepositorio
   salvarNovoCliente(usuario: Usuario): Promise<Usuario> {
     return sequelize.transaction(async (transaction) => {
       const documento = usuario.cnpj ?? usuario.cpf;
-      const existente = await ClienteModelo.findOne({ where: { documento }, transaction });
+      const cliente = await ClienteModelo.findOne({ where: { documento }, transaction });
 
-      if (existente) {
-        throw new ConflitoErro(
-          `Este ${usuario.cnpj ? "CNPJ" : "CPF"} já possui cadastro de cliente. Solicite à Signus a vinculação do acesso.`,
+      if (!cliente) {
+        throw new RecursoNaoEncontradoErro("Não encontramos um orçamento para este CPF/CNPJ.");
+      }
+
+      if (cliente.email.toLowerCase() !== usuario.email) {
+        throw new RequisicaoInvalidaErro(
+          "O e-mail informado não confere com o e-mail do orçamento.",
         );
       }
 
-      const cliente = new Cliente({ nome: usuario.nome, email: usuario.email, documento });
-      const clienteCriado = await ClienteModelo.create(valoresDoCliente(cliente), { transaction });
-      usuario.vincularCliente(Number(clienteCriado.id));
+      const contaExistente = await this.modelo.findOne({
+        where: { clienteId: cliente.id },
+        transaction,
+      });
+      if (contaExistente) {
+        throw new ConflitoErro("Este cliente já possui uma conta de acesso.");
+      }
+
+      usuario.vincularCliente(Number(cliente.id));
 
       const { senhaHash, ...estado } = usuario.paraPersistencia();
       if (senhaHash === undefined) {

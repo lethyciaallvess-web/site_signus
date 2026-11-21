@@ -1,29 +1,22 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import type { FormEvent } from "react";
-import {
-    REGEX_SENHA,
-    validarCpf,
-    validarCnpj,
-    validarNome,
-    somenteNumeros,
-} from "../utils/validacoes";
-import { mascararCpfOuCnpj, mascararNome } from "../utils/mascaras";
+import { REGEX_SENHA, validarCpf, validarCnpj, validarNome, somenteNumeros } from "../utils/validacoes";
+import { mascararCnpj, mascararCpf, mascararNome } from "../utils/mascaras";
 import { rotaInicial } from "../utils/perfis";
 import { formatarIniciais, rotulosPerfil } from "../utils/formatacoes";
 import { Input } from "../components/Input";
 import { Botao } from "../components/Botao";
-import { atualizarPerfilParcial } from "../services/autenticacao";
+import { atualizarPerfil, obterPerfil } from "../services/autenticacao";
 import { ApiError } from "../services/api";
 import { useUsuario } from "../contexts/UsuarioContext";
 import "./Auth.css";
 import "./Perfil.css";
 
-type Secao = "nome" | "cpf" | "senha" | null;
-
 interface Erros {
     nome?: string;
     cpf?: string;
+    cnpj?: string;
     senhaAtual?: string;
     senha?: string;
     confirmarSenha?: string;
@@ -45,9 +38,10 @@ function Linha({ rotulo, valor }: LinhaProps) {
 
 export function Perfil() {
     const { usuario, atualizarUsuario } = useUsuario();
-    const [editando, setEditando] = useState<Secao>(null);
-    const [nome, setNome] = useState(usuario?.nome ?? "");
+    const [editando, setEditando] = useState(false);
+    const [nome, setNome] = useState("");
     const [cpf, setCpf] = useState("");
+    const [cnpj, setCnpj] = useState("");
     const [senhaAtual, setSenhaAtual] = useState("");
     const [senha, setSenha] = useState("");
     const [confirmarSenha, setConfirmarSenha] = useState("");
@@ -56,29 +50,39 @@ export function Perfil() {
     const [sucesso, setSucesso] = useState("");
     const [enviando, setEnviando] = useState(false);
 
-    function handleAbrir(secao: Secao) {
-        setEditando(secao);
+    function limparSenhas() {
+        setSenhaAtual("");
+        setSenha("");
+        setConfirmarSenha("");
+    }
+
+    async function handleAbrir() {
         setErros({});
         setErroGeral("");
         setSucesso("");
-        setNome(usuario?.nome ?? "");
-        setCpf("");
-        setSenhaAtual("");
-        setSenha("");
-        setConfirmarSenha("");
+        limparSenhas();
+
+        try {
+            const dados = await obterPerfil();
+            setNome(dados.nome);
+            setCpf(mascararCpf(dados.cpf));
+            setCnpj(dados.cnpj ? mascararCnpj(dados.cnpj) : "");
+            setEditando(true);
+        } catch (erro) {
+            setErroGeral(
+                erro instanceof ApiError ? erro.message : "Erro inesperado. Tente novamente."
+            );
+        }
     }
 
     function handleCancelar() {
-        setEditando(null);
+        setEditando(false);
         setErros({});
         setErroGeral("");
-        setCpf("");
-        setSenhaAtual("");
-        setSenha("");
-        setConfirmarSenha("");
+        limparSenhas();
     }
 
-    async function handleSubmitNome(event: FormEvent) {
+    async function handleSubmit(event: FormEvent) {
         event.preventDefault();
         setErroGeral("");
 
@@ -92,74 +96,15 @@ export function Perfil() {
             novosErros.nome = "Use apenas letras no nome.";
         }
 
-        setErros(novosErros);
-
-        if (Object.keys(novosErros).length > 0) {
-            return;
-        }
-
-        setEnviando(true);
-        try {
-            await atualizarPerfilParcial({ nome: nome.trim() });
-
-            if (usuario) {
-                atualizarUsuario({ ...usuario, nome: nome.trim() });
-            }
-
-            setEditando(null);
-            setSucesso("Nome atualizado com sucesso.");
-        } catch (erro) {
-            setErroGeral(
-                erro instanceof ApiError ? erro.message : "Erro inesperado. Tente novamente."
-            );
-        } finally {
-            setEnviando(false);
-        }
-    }
-
-    async function handleSubmitCpf(event: FormEvent) {
-        event.preventDefault();
-        setErroGeral("");
-
-        const novosErros: Erros = {};
-        const numerosDocumento = somenteNumeros(cpf);
-
         if (cpf.trim() === "") {
-            novosErros.cpf = "Informe o CPF ou CNPJ.";
-        } else if (numerosDocumento.length <= 11) {
-            if (!validarCpf(cpf)) {
-                novosErros.cpf = "CPF inválido.";
-            }
-        } else if (!validarCnpj(cpf)) {
-            novosErros.cpf = "CNPJ inválido.";
+            novosErros.cpf = "Informe o CPF.";
+        } else if (!validarCpf(cpf)) {
+            novosErros.cpf = "CPF inválido.";
         }
 
-        setErros(novosErros);
-
-        if (Object.keys(novosErros).length > 0) {
-            return;
+        if (cnpj !== "" && !validarCnpj(cnpj)) {
+            novosErros.cnpj = "CNPJ inválido.";
         }
-
-        setEnviando(true);
-        try {
-            await atualizarPerfilParcial({ cpf: numerosDocumento });
-            setCpf("");
-            setEditando(null);
-            setSucesso("Documento atualizado com sucesso.");
-        } catch (erro) {
-            setErroGeral(
-                erro instanceof ApiError ? erro.message : "Erro inesperado. Tente novamente."
-            );
-        } finally {
-            setEnviando(false);
-        }
-    }
-
-    async function handleSubmitSenha(event: FormEvent) {
-        event.preventDefault();
-        setErroGeral("");
-
-        const novosErros: Erros = {};
 
         if (senhaAtual === "") {
             novosErros.senhaAtual = "Informe a senha atual.";
@@ -170,10 +115,7 @@ export function Perfil() {
         } else if (senha.length < 8) {
             novosErros.senha = "A senha deve ter pelo menos 8 caracteres.";
         } else if (!REGEX_SENHA.test(senha)) {
-            novosErros.senha =
-                "Use letra maiúscula, minúscula, número e caractere especial.";
-        } else if (senha === senhaAtual) {
-            novosErros.senha = "A nova senha deve ser diferente da atual.";
+            novosErros.senha = "Use letra maiúscula, minúscula, número e caractere especial.";
         }
 
         if (confirmarSenha === "") {
@@ -184,23 +126,28 @@ export function Perfil() {
 
         setErros(novosErros);
 
-        if (Object.keys(novosErros).length > 0 || !usuario) {
+        if (Object.keys(novosErros).length > 0) {
             return;
         }
 
         setEnviando(true);
         try {
-            await atualizarPerfilParcial({
+            await atualizarPerfil({
+                nome: nome.trim(),
+                cpf: somenteNumeros(cpf),
+                cnpj: cnpj === "" ? null : somenteNumeros(cnpj),
                 senhaAtual,
                 senha,
                 confirmacaoSenha: confirmarSenha,
             });
 
-            setSenhaAtual("");
-            setSenha("");
-            setConfirmarSenha("");
-            setEditando(null);
-            setSucesso("Senha alterada com sucesso.");
+            if (usuario) {
+                atualizarUsuario({ ...usuario, nome: nome.trim() });
+            }
+
+            limparSenhas();
+            setEditando(false);
+            setSucesso("Dados atualizados com sucesso.");
         } catch (erro) {
             setErroGeral(
                 erro instanceof ApiError ? erro.message : "Erro inesperado. Tente novamente."
@@ -237,20 +184,16 @@ export function Perfil() {
 
                 <section className="perfil-secao">
                     <div className="perfil-secao-cabecalho">
-                        <h2>Informações</h2>
-                        {editando !== "nome" && (
-                            <button
-                                type="button"
-                                className="perfil-link"
-                                onClick={() => handleAbrir("nome")}
-                            >
-                                Editar nome
+                        <h2>Meus dados</h2>
+                        {!editando && (
+                            <button type="button" className="perfil-link" onClick={handleAbrir}>
+                                Editar dados
                             </button>
                         )}
                     </div>
 
-                    {editando === "nome" ? (
-                        <form onSubmit={handleSubmitNome} noValidate className="perfil-form">
+                    {editando ? (
+                        <form onSubmit={handleSubmit} noValidate className="perfil-form">
                             <Input
                                 type="text"
                                 placeholder="Nome completo"
@@ -261,90 +204,35 @@ export function Perfil() {
                                 erro={erros.nome}
                             />
 
-                            <div className="perfil-acoes">
-                                <Botao type="submit" disabled={enviando}>
-                                    Salvar
-                                </Botao>
-                                <button
-                                    type="button"
-                                    className="perfil-cancelar"
-                                    onClick={handleCancelar}
-                                >
-                                    Cancelar
-                                </button>
-                            </div>
-                        </form>
-                    ) : (
-                        <dl>
-                            <Linha rotulo="Nome" valor={nomeAtual} />
-                            <Linha rotulo="E-mail" valor={usuario?.email ?? ""} />
-                        </dl>
-                    )}
-                </section>
+                            <Input
+                                type="email"
+                                placeholder="E-mail (não pode ser alterado)"
+                                value={usuario?.email ?? ""}
+                                onChange={() => {}}
+                                disabled
+                            />
 
-                <section className="perfil-secao">
-                    <div className="perfil-secao-cabecalho">
-                        <h2>Documento</h2>
-                        {editando !== "cpf" && (
-                            <button
-                                type="button"
-                                className="perfil-link"
-                                onClick={() => handleAbrir("cpf")}
-                            >
-                                Alterar CPF/CNPJ
-                            </button>
-                        )}
-                    </div>
-
-                    {editando === "cpf" ? (
-                        <form onSubmit={handleSubmitCpf} noValidate className="perfil-form">
                             <Input
                                 type="text"
-                                placeholder="CPF ou CNPJ"
+                                placeholder="CPF"
                                 obrigatorio
-                                maxLength={18}
+                                maxLength={14}
                                 inputMode="numeric"
                                 value={cpf}
-                                onChange={(event) => setCpf(mascararCpfOuCnpj(event.target.value))}
+                                onChange={(event) => setCpf(mascararCpf(event.target.value))}
                                 erro={erros.cpf}
                             />
 
-                            <div className="perfil-acoes">
-                                <Botao type="submit" disabled={enviando}>
-                                    Salvar documento
-                                </Botao>
-                                <button
-                                    type="button"
-                                    className="perfil-cancelar"
-                                    onClick={handleCancelar}
-                                >
-                                    Cancelar
-                                </button>
-                            </div>
-                        </form>
-                    ) : (
-                        <dl>
-                            <Linha rotulo="CPF/CNPJ" valor="••••••••••••" />
-                        </dl>
-                    )}
-                </section>
+                            <Input
+                                type="text"
+                                placeholder="CNPJ (somente se for empresa)"
+                                maxLength={18}
+                                inputMode="numeric"
+                                value={cnpj}
+                                onChange={(event) => setCnpj(mascararCnpj(event.target.value))}
+                                erro={erros.cnpj}
+                            />
 
-                <section className="perfil-secao">
-                    <div className="perfil-secao-cabecalho">
-                        <h2>Segurança</h2>
-                        {editando !== "senha" && (
-                            <button
-                                type="button"
-                                className="perfil-link"
-                                onClick={() => handleAbrir("senha")}
-                            >
-                                Alterar senha
-                            </button>
-                        )}
-                    </div>
-
-                    {editando === "senha" ? (
-                        <form onSubmit={handleSubmitSenha} noValidate className="perfil-form">
                             <Input
                                 type="password"
                                 placeholder="Senha atual"
@@ -377,7 +265,7 @@ export function Perfil() {
 
                             <div className="perfil-acoes">
                                 <Botao type="submit" disabled={enviando}>
-                                    Salvar senha
+                                    Salvar
                                 </Botao>
                                 <button
                                     type="button"
@@ -390,6 +278,9 @@ export function Perfil() {
                         </form>
                     ) : (
                         <dl>
+                            <Linha rotulo="Nome" valor={nomeAtual} />
+                            <Linha rotulo="E-mail" valor={usuario?.email ?? ""} />
+                            <Linha rotulo="CPF" valor="•••.•••.•••-••" />
                             <Linha rotulo="Senha" valor="••••••••" />
                         </dl>
                     )}
