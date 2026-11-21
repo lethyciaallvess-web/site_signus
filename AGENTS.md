@@ -5,7 +5,7 @@
 - Não há README raiz, CI, workspace root `package.json` nem scripts de teste configurados nos manifests; use os comandos de cada subprojeto.
 
 ## Comandos
-- Docker (raiz): `docker compose up --build` sobe `db`, `backend`, `frontend` e `nginx`. `compose.override.yml` expõe o MySQL localmente em `127.0.0.1:3308->3306`.
+- Docker (raiz): `docker compose up --build` sobe `db`, `backend`, `frontend` e `nginx`.
 - Backend (`backend/`): `npm run dev` (tsx watch em `src/server.ts`), `npm run build` (`tsc -p tsconfig.json`), `npm start` (`node dist/server.js`).
 - Frontend (`frontend/`): `npm run dev`, `npm run build` (`tsc -b && vite build`), `npm run lint` (`eslint .`), `npm run preview`.
 
