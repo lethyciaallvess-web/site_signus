@@ -6,7 +6,7 @@
 
 ## Comandos
 - Docker (raiz): `docker compose up --build` sobe `db`, `backend`, `frontend` e `nginx`. `compose.override.yml` expõe o MySQL localmente em `127.0.0.1:3308->3306`.
-- Backend (`backend/`): `npm run dev` (tsx watch em `src/server.ts`), `npm run build` (`tsc -p tsconfig.json`), `npm start` (`node dist/server.js`). Não há script `lint`/`test` no `package.json` (existem `oxlint.json`, `test/*.cjs` e `scripts/*.cjs`, mas não estão ligados a scripts npm).    
+- Backend (`backend/`): `npm run dev` (tsx watch em `src/server.ts`), `npm run build` (`tsc -p tsconfig.json`), `npm start` (`node dist/server.js`).
 - Frontend (`frontend/`): `npm run dev`, `npm run build` (`tsc -b && vite build`), `npm run lint` (`eslint .`), `npm run preview`.
 
 ## Arquitetura e pontos de entrada

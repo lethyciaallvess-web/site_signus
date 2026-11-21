@@ -154,33 +154,27 @@ export class UsuarioServico {
   ): Promise<UsuarioPublico> {
     const usuario = await this.buscarOuFalhar(id);
 
-    if (dados.cpf !== undefined) {
-      const outroComCpf = await this.usuarios.buscarPorCpf(dados.cpf);
-      if (outroComCpf && outroComCpf.id !== usuario.id) {
-        throw new ConflitoErro("Já existe outro usuário com esse CPF.");
-      }
-      usuario.cpf = dados.cpf;
+    const comSenha = await this.usuarios.buscarPorIdComSenha(id);
+    if (!comSenha || !(await comSenha.senhaConfere(dados.senhaAtual))) {
+      throw new RequisicaoInvalidaErro("Senha atual incorreta.");
     }
 
-    if (dados.cnpj !== undefined) {
-      if (dados.cnpj !== null) {
-        const outroComCnpj = await this.usuarios.buscarPorCnpj(dados.cnpj);
-        if (outroComCnpj && outroComCnpj.id !== usuario.id) {
-          throw new ConflitoErro("Já existe outro usuário com esse CNPJ.");
-        }
-      }
-      usuario.cnpj = dados.cnpj;
+    const outroComCpf = await this.usuarios.buscarPorCpf(dados.cpf);
+    if (outroComCpf && outroComCpf.id !== usuario.id) {
+      throw new ConflitoErro("Já existe outro usuário com esse CPF.");
     }
 
-    if (dados.nome !== undefined) usuario.nome = dados.nome;
-
-    if (dados.senha !== undefined) {
-      const comSenha = await this.usuarios.buscarPorIdComSenha(id);
-      if (!comSenha || !(await comSenha.senhaConfere(dados.senhaAtual ?? ""))) {
-        throw new RequisicaoInvalidaErro("Senha atual incorreta.");
+    if (dados.cnpj !== null) {
+      const outroComCnpj = await this.usuarios.buscarPorCnpj(dados.cnpj);
+      if (outroComCnpj && outroComCnpj.id !== usuario.id) {
+        throw new ConflitoErro("Já existe outro usuário com esse CNPJ.");
       }
-      usuario.definirSenhaHash(await new Senha(dados.senha).gerarHash());
     }
+
+    usuario.nome = dados.nome;
+    usuario.cpf = dados.cpf;
+    usuario.cnpj = dados.cnpj;
+    usuario.definirSenhaHash(await new Senha(dados.senha).gerarHash());
 
     try {
       return paraPublico(await this.usuarios.salvar(usuario));
