@@ -9,7 +9,7 @@ import { lerEstadoBase } from "./repositorio-base";
 export interface RepositorioDeCredenciais {
   buscarPorEmailComSenha(email: string): Promise<Usuario | null>;
 }
-
+//
 export interface RepositorioDeUsuarios {
   buscarPorId(id: number): Promise<Usuario | null>;
   buscarPorIdComSenha(id: number): Promise<Usuario | null>;
