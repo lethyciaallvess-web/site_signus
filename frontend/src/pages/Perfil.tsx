@@ -106,22 +106,26 @@ export function Perfil() {
             novosErros.cnpj = "CNPJ inválido.";
         }
 
-        if (senhaAtual === "") {
-            novosErros.senhaAtual = "Informe a senha atual.";
-        }
+        const trocarSenha = senhaAtual !== "" || senha !== "" || confirmarSenha !== "";
 
-        if (senha === "") {
-            novosErros.senha = "Informe a nova senha.";
-        } else if (senha.length < 8) {
-            novosErros.senha = "A senha deve ter pelo menos 8 caracteres.";
-        } else if (!REGEX_SENHA.test(senha)) {
-            novosErros.senha = "Use letra maiúscula, minúscula, número e caractere especial.";
-        }
+        if (trocarSenha) {
+            if (senhaAtual === "") {
+                novosErros.senhaAtual = "Informe a senha atual.";
+            }
 
-        if (confirmarSenha === "") {
-            novosErros.confirmarSenha = "Confirme a nova senha.";
-        } else if (senha !== confirmarSenha) {
-            novosErros.confirmarSenha = "As senhas não conferem.";
+            if (senha === "") {
+                novosErros.senha = "Informe a nova senha.";
+            } else if (senha.length < 8) {
+                novosErros.senha = "A senha deve ter pelo menos 8 caracteres.";
+            } else if (!REGEX_SENHA.test(senha)) {
+                novosErros.senha = "Use letra maiúscula, minúscula, número e caractere especial.";
+            }
+
+            if (confirmarSenha === "") {
+                novosErros.confirmarSenha = "Confirme a nova senha.";
+            } else if (senha !== confirmarSenha) {
+                novosErros.confirmarSenha = "As senhas não conferem.";
+            }
         }
 
         setErros(novosErros);
@@ -136,9 +140,7 @@ export function Perfil() {
                 nome: nome.trim(),
                 cpf: somenteNumeros(cpf),
                 cnpj: cnpj === "" ? null : somenteNumeros(cnpj),
-                senhaAtual,
-                senha,
-                confirmacaoSenha: confirmarSenha,
+                ...(trocarSenha ? { senhaAtual, senha, confirmacaoSenha: confirmarSenha } : {}),
             });
 
             if (usuario) {
@@ -233,10 +235,11 @@ export function Perfil() {
                                 erro={erros.cnpj}
                             />
 
+                            <p className="auth-aviso">Para trocar a senha, preencha os campos abaixo. Se não quiser trocar, deixe em branco.</p>
+
                             <Input
                                 type="password"
                                 placeholder="Senha atual"
-                                obrigatorio
                                 maxLength={72}
                                 value={senhaAtual}
                                 onChange={(event) => setSenhaAtual(event.target.value)}
@@ -246,7 +249,6 @@ export function Perfil() {
                             <Input
                                 type="password"
                                 placeholder="Nova senha"
-                                obrigatorio
                                 maxLength={72}
                                 value={senha}
                                 onChange={(event) => setSenha(event.target.value)}
@@ -256,7 +258,6 @@ export function Perfil() {
                             <Input
                                 type="password"
                                 placeholder="Confirmar nova senha"
-                                obrigatorio
                                 maxLength={72}
                                 value={confirmarSenha}
                                 onChange={(event) => setConfirmarSenha(event.target.value)}

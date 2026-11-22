@@ -64,9 +64,9 @@ export type DadosEdicao = {
   nome: string;
   cpf: string;
   cnpj: string | null;
-  senha: string;
-  confirmacaoSenha: string;
-  senhaAtual: string;
+  senha?: string;
+  confirmacaoSenha?: string;
+  senhaAtual?: string;
 };
 
 export async function atualizarPerfil(dados: DadosEdicao): Promise<Usuario> {

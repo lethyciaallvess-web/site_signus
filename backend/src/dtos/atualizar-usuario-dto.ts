@@ -11,8 +11,12 @@ export interface DadosAtualizarUsuario {
   nome: string;
   cpf: string;
   cnpj: string | null;
-  senha: string;
-  senhaAtual: string;
+  senha?: string;
+  senhaAtual?: string;
+}
+
+function preenchido(valor: unknown): boolean {
+  return typeof valor === "string" && valor.length > 0;
 }
 
 export function validarDadosAtualizarUsuario(corpo: unknown): DadosAtualizarUsuario {
@@ -21,16 +25,23 @@ export function validarDadosAtualizarUsuario(corpo: unknown): DadosAtualizarUsua
 
   if ("email" in bruto) erros.push("O e-mail não pode ser alterado.");
 
-  const senhaAtual = typeof bruto.senhaAtual === "string" ? bruto.senhaAtual : "";
-  if (senhaAtual.length === 0) erros.push("Informe a senha atual.");
-
   const dados: DadosAtualizarUsuario = {
     nome: validarNome(bruto.nome, erros),
     cpf: validarCpf(bruto.cpf, erros),
     cnpj: validarCnpjOpcional(bruto.cnpj, erros),
-    senha: validarSenha(bruto.senha, bruto.confirmacaoSenha, erros),
-    senhaAtual,
   };
+
+  const querTrocarSenha =
+    preenchido(bruto.senha) || preenchido(bruto.confirmacaoSenha) || preenchido(bruto.senhaAtual);
+
+  if (querTrocarSenha) {
+    dados.senha = validarSenha(bruto.senha, bruto.confirmacaoSenha, erros);
+    if (!preenchido(bruto.senhaAtual)) {
+      erros.push("Informe a senha atual para trocar a senha.");
+    } else {
+      dados.senhaAtual = bruto.senhaAtual as string;
+    }
+  }
 
   if (erros.length > 0) {
     throw new RequisicaoInvalidaErro("Dados de edição inválidos.", erros);

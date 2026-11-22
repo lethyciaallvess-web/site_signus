@@ -154,11 +154,6 @@ export class UsuarioServico {
   ): Promise<UsuarioPublico> {
     const usuario = await this.buscarOuFalhar(id);
 
-    const comSenha = await this.usuarios.buscarPorIdComSenha(id);
-    if (!comSenha || !(await comSenha.senhaConfere(dados.senhaAtual))) {
-      throw new RequisicaoInvalidaErro("Senha atual incorreta.");
-    }
-
     const outroComCpf = await this.usuarios.buscarPorCpf(dados.cpf);
     if (outroComCpf && outroComCpf.id !== usuario.id) {
       throw new ConflitoErro("Já existe outro usuário com esse CPF.");
@@ -174,7 +169,14 @@ export class UsuarioServico {
     usuario.nome = dados.nome;
     usuario.cpf = dados.cpf;
     usuario.cnpj = dados.cnpj;
-    usuario.definirSenhaHash(await new Senha(dados.senha).gerarHash());
+
+    if (dados.senha !== undefined) {
+      const comSenha = await this.usuarios.buscarPorIdComSenha(id);
+      if (!comSenha || !(await comSenha.senhaConfere(dados.senhaAtual ?? ""))) {
+        throw new RequisicaoInvalidaErro("Senha atual incorreta.");
+      }
+      usuario.definirSenhaHash(await new Senha(dados.senha).gerarHash());
+    }
 
     try {
       return paraPublico(await this.usuarios.salvar(usuario));
