@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import { RequisicaoInvalidaErro } from "../erros/erros-http";
 
 export class Senha {
-    private static readonly REGEX_FORTE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).+$/;
+    private static readonly REGEX_FORTE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).+$/; //nivel da senha
     private static readonly RODADAS_BCRYPT = 12;
 
     private readonly texto: string;
@@ -41,7 +41,7 @@ export class Senha {
         return erros;
     };
 
-    public gerarHash = (): Promise<string> => {
+    public gerarHash = (): Promise<string> => { // hash bcrypt 
         return bcrypt.hash(this.texto, Senha.RODADAS_BCRYPT);
-    };
+    };//
 }

@@ -23,7 +23,7 @@ export class Cpf {
         return entrada.replace(/\D/g, "");
     };
 
-    public static ehValido = (entrada: unknown): boolean => {
+    public static ehValido = (entrada: unknown): boolean => {// digitos verificadores do cpf
         if (typeof entrada !== "string") {
             return false;
         }
@@ -53,5 +53,5 @@ export class Cpf {
 
         const resto = (soma * 10) % 11;
         return resto === 10 ? 0 : resto;
-    };
+    };//
 }

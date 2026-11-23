@@ -5,14 +5,14 @@ import { autenticar, exigirPerfil } from "../middlewares/autenticar";
 
 export function criarRotasItem(controlador: ItemControlador): Router {
   const rotas = Router();
-  rotas.use(autenticar);
+  rotas.use(autenticar);//
   rotas.use(exigirPerfil(PerfilUsuario.ADMIN, PerfilUsuario.OPERADOR));
 
   rotas.get("/", controlador.listar);
   rotas.get("/:id", controlador.obter);
   rotas.post("/", controlador.criar);
   rotas.put("/:id", controlador.atualizar);
-  rotas.delete("/:id", controlador.excluir);
+  rotas.delete("/:id", controlador.excluir);//
 
   return rotas;
 }

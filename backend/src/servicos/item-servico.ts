@@ -85,9 +85,9 @@ export class ItemServico {
     }
   }
 
-  private async buscarOuFalhar(id: number): Promise<Item> {
+  private async buscarOuFalhar(id: number): Promise<Item> {// 404 antes de editar ou excluir
     const item = await this.itens.buscarPorId(id);
     if (!item) throw new RecursoNaoEncontradoErro("Item não encontrado.");
-    return item;
+    return item;//
   }
 }

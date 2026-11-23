@@ -20,7 +20,7 @@ export interface EstadoUsuario {
   perfil: PerfilUsuario;
   clienteId: number | null;
 }
-
+ //87
 export class Usuario extends EntidadeBase {
   private _nome!: string;
 
@@ -84,6 +84,7 @@ export class Usuario extends EntidadeBase {
     return usuario;
   }
 
+  //137
   get nome(): string {
     return this._nome;
   }
@@ -134,6 +135,7 @@ export class Usuario extends EntidadeBase {
     return this._perfil;
   }
 
+  //91
   async senhaConfere(texto: string): Promise<boolean> {
     return bcrypt.compare(texto, this._senhaHash);
   }

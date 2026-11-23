@@ -18,7 +18,7 @@ export interface RespostaLogin {
 
 export class AutenticacaoServico {
   constructor(private readonly usuarios: RepositorioDeCredenciais) { }
-
+//
   async login(dados: DadosLogin): Promise<RespostaLogin> {
     const usuario = await this.usuarios.buscarPorEmailComSenha(dados.email);
 
@@ -48,6 +48,6 @@ export class AutenticacaoServico {
         email: usuario.email,
         perfil: usuario.perfil,
       },
-    };
+    };// busca o usario, compara a senha com bycript e gera o jwt
   }
 }

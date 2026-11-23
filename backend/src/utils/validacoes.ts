@@ -1,6 +1,6 @@
 import { RequisicaoInvalidaErro } from "../erros/erros-http";
 
-const REGEX_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const REGEX_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/; //regex do email
 
 export function emailValido(email: string): boolean {
   return email.length <= 255 && REGEX_EMAIL.test(email);

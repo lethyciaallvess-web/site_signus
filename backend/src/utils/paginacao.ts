@@ -26,6 +26,7 @@ function lerInteiro(valor: unknown, padrao: number, rotulo: string): number {
   return numero;
 }
 
+//pagina e limite
 export function lerPaginacao(query: Record<string, unknown>): ParametrosPaginacao {
   const pagina = lerInteiro(query.pagina, 1, "A página");
   const limite = Math.min(lerInteiro(query.limite, LIMITE_PADRAO, "O limite"), LIMITE_MAXIMO);
@@ -39,7 +40,7 @@ export function montarPagina<T>(
   { pagina, limite }: ParametrosPaginacao,
 ): Pagina<T> {
   return { dados, total, pagina, limite, totalPaginas: Math.max(1, Math.ceil(total / limite)) };
-}
+}//
 
 export function lerId(valor: unknown): number {
   const id = Number(valor);

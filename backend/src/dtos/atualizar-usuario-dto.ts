@@ -23,9 +23,9 @@ export function validarDadosAtualizarUsuario(corpo: unknown): DadosAtualizarUsua
   const bruto = lerCorpo(corpo);
   const erros: string[] = [];
 
-  if ("email" in bruto) erros.push("O e-mail não pode ser alterado.");
+  if ("email" in bruto) erros.push("O e-mail não pode ser alterado.");//se vier email no corpo: 400
 
-  const dados: DadosAtualizarUsuario = {
+  const dados: DadosAtualizarUsuario = {// trata os obrigatórios
     nome: validarNome(bruto.nome, erros),
     cpf: validarCpf(bruto.cpf, erros),
     cnpj: validarCnpjOpcional(bruto.cnpj, erros),
@@ -41,7 +41,7 @@ export function validarDadosAtualizarUsuario(corpo: unknown): DadosAtualizarUsua
     } else {
       dados.senhaAtual = bruto.senhaAtual as string;
     }
-  }
+  }//
 
   if (erros.length > 0) {
     throw new RequisicaoInvalidaErro("Dados de edição inválidos.", erros);

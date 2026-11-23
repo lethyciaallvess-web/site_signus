@@ -13,7 +13,7 @@ export function criarRotasUsuario(controlador: UsuarioControlador): Router {
   rotas.get("/equipe/:id", autenticar, exigirPerfil(PerfilUsuario.ADMIN), controlador.obterFuncionario);
   rotas.patch("/equipe/:id", autenticar, exigirPerfil(PerfilUsuario.ADMIN), controlador.atualizarFuncionario);
   rotas.delete("/equipe/:id", autenticar, exigirPerfil(PerfilUsuario.ADMIN), controlador.excluirFuncionario);
-  rotas.patch("/me", autenticar, controlador.atualizarProprio);
+  rotas.patch("/me", autenticar, controlador.atualizarProprio);// o id vem do token, n da url, ent só da pra editar pelo propio user
 
   return rotas;
 }

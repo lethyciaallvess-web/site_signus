@@ -19,6 +19,7 @@ UsuarioModelo.belongsTo(ClienteModelo, {
   onUpdate: "CASCADE",
 });
 
+//evento, cliente e evento, plano
 EventoModelo.belongsTo(ClienteModelo, {
   as: "cliente",
   foreignKey: { name: "clienteId", field: "cliente_id", allowNull: false },

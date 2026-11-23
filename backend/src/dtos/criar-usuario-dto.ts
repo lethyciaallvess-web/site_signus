@@ -16,7 +16,7 @@ export interface DadosCriarUsuario {
   senha: string;
 }
 
-export function validarDadosCriarUsuario(corpo: unknown): DadosCriarUsuario {
+export function validarDadosCriarUsuario(corpo: unknown): DadosCriarUsuario {//campo obrigatorio
   const bruto = lerCorpo(corpo);
   const erros: string[] = [];
 
